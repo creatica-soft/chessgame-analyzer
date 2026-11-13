@@ -13,7 +13,7 @@ enum EditTool: Hashable {
 @MainActor
 @Observable
 final class AnalysisModel {
-    let engine = EngineService()
+    let engine: EngineService
 
     private(set) var position = Position.start
     var tool: EditTool = .move
@@ -36,11 +36,15 @@ final class AnalysisModel {
     private var undoStack: [Position] = []
     private var pending: Task<Void, Never>?
 
+    init(engine: EngineService) {
+        self.engine = engine
+    }
+
     var canUndo: Bool { !undoStack.isEmpty }
     var fen: String { position.fen }
 
-    func start(threads: Int, hashMB: Int) {
-        engine.start(threads: threads, hashMB: hashMB)
+    /// Call once the engine has been started.
+    func start() {
         scheduleAnalysis()
     }
 
@@ -122,20 +126,24 @@ final class AnalysisModel {
     /// The engine button: stops a running search, or searches the board again, for longer if the
     /// last search of it finished.
     func toggleAnalysis() {
-        if engine.status == .analyzing {
+        if isAnalyzing {
             analysisEnabled = false
             pending?.cancel()
-            engine.stop()
+            engine.stop(.position)
         } else {
             analysisEnabled = true
             scheduleAnalysis(force: true)
         }
     }
 
+    /// Whether the engine is searching for this screen (not for the Games tab).
+    var isAnalyzing: Bool { engine.status == .analyzing && engine.owner == .position }
+
     /// Whether the last search of the board reached its limit.
     var searchCompleted: Bool { engine.completedFEN == position.fen }
 
-    /// The engine's lines, if they are for the position on the board.
+    /// The engine's lines, if they are for the position on the board. (A game analysis that
+    /// passed through this very position counts: its lines are as good as our own.)
     var currentLines: [EngineService.AnalysisLine] {
         guard engine.analyzedFEN == position.fen else { return [] }
         return engine.lines.keys.sorted().compactMap { engine.lines[$0] }
@@ -179,12 +187,12 @@ final class AnalysisModel {
         terminal = invalidReason == nil ? EngineService.terminal(fen: fen) : nil
 
         guard invalidReason == nil, terminal == nil, analysisEnabled, pauseReason == nil else {
-            if invalidReason != nil || terminal != nil { engine.clear() } else { engine.stop() }
+            if invalidReason != nil || terminal != nil { engine.clear(.position) } else { engine.stop(.position) }
             return
         }
-        if !force, engine.analyzedFEN == fen, engine.status == .analyzing || searchCompleted { return }
+        if !force, engine.analyzedFEN == fen, isAnalyzing || searchCompleted { return }
         // Searching a finished position again goes further each time; see SearchLimit.extended.
         extensions = engine.analyzedFEN == fen && searchCompleted ? extensions + 1 : 0
-        engine.analyze(fen: fen, limit: searchLimit.extended(by: extensions))
+        engine.analyze(fen: fen, limit: searchLimit.extended(by: extensions), for: .position)
     }
 }

@@ -40,6 +40,17 @@ int creatica_uci_to_san(const char * _Nonnull fen, const char * _Nonnull uci_mov
 int creatica_play_moves(const char * _Nonnull fen, const char * _Nonnull uci_moves,
                         char * _Nonnull out_fen, int out_len);
 
+/// Replays the space-separated SAN moves `san_moves` from `fen`. For each move played it appends
+/// one line to `out`: the move in long algebraic notation (standard castling as e1g1), a space,
+/// and the FEN of the position after it. Stops at the first move it cannot read or that is
+/// illegal. Returns how many moves it played; `out_len` must allow ~128 bytes per move.
+int creatica_replay_san(const char * _Nonnull fen, const char * _Nonnull san_moves,
+                        char * _Nonnull out, int out_len);
+
+/// Every legal move in `fen`, one per line: long algebraic (standard castling as e1g1), a space,
+/// and SAN. Returns how many; `out_len` must allow ~16 bytes per move (a position has at most 218).
+int creatica_legal_moves(const char * _Nonnull fen, char * _Nonnull out, int out_len);
+
 #ifdef __cplusplus
 }
 #endif

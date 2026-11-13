@@ -272,3 +272,94 @@ extern "C" int creatica_play_moves(const char * fen, const char * uci_moves, cha
     std::snprintf(out_fen, (size_t)out_len, "%s", board2fen(b, buf));
     return played;
 }
+
+extern "C" int creatica_replay_san(const char * fen, const char * san_moves, char * out, int out_len) {
+    if (out_len <= 0) return 0;
+    out[0] = '\0';
+    if (!wait_ready()) return 0;
+
+    Board b{};
+    if (fen2board(b, fen) != 0) return 0;
+
+    std::istringstream in(san_moves);
+    std::string token, result;
+    int played = 0;
+    while (in >> token) {
+        // san2move() copies the move into a 12-byte buffer; the longest real SAN is 7 characters.
+        if (token.size() > 10) break;
+        Move m = {};
+        if (san2move(b, token.c_str(), m) != 0 || m.type == MoveTypeNull) break;
+        normalise_castling(b, m);
+        if (illegal_reason(b, m) != nullptr) break;
+
+        Move made = m;
+        StateInfo st{};
+        do_move(b, made, st);
+
+        // UCI as the engine prints it. libchess encodes castling as king-takes-rook where it can,
+        // which in standard chess the engine writes as the king's two-square move.
+        Square dst = m.dst;
+        if (!b.isChess960 && (made.type == MoveTypeCastlingKingside || made.type == MoveTypeCastlingQueenside))
+            dst = (Square)(made.type == MoveTypeCastlingKingside ? m.src + 2 : m.src - 2);
+        result += square[m.src];
+        result += square[dst];
+        if (m.promoType != PieceTypeNone) result += uciPromoLetter[m.promoType];
+        char buf[MAX_FEN_STRING_LEN];
+        result += ' ';
+        result += board2fen(b, buf);
+        result += '\n';
+        ++played;
+    }
+    if ((int)result.size() >= out_len) return 0;
+    std::memcpy(out, result.c_str(), result.size() + 1);
+    return played;
+}
+
+extern "C" int creatica_legal_moves(const char * fen, char * out, int out_len) {
+    if (out_len <= 0) return 0;
+    out[0] = '\0';
+    if (!wait_ready()) return 0;
+
+    Board b{};
+    if (fen2board(b, fen) != 0) return 0;
+
+    std::string result;
+    int count = 0;
+    // Every from/to pair, tested by illegal_reason(), which checks squares but not promotion
+    // pieces, so a pawn reaching the last rank is spelled out four times.
+    for (int s = 0; s < 64; ++s) {
+        if (!((b.side[b.sideToMove] >> s) & 1ULL)) continue;
+        const bool pawn = PC_TYPE(b.piecesOnSquares[s]) == Pawn;
+        for (int d = 0; d < 64; ++d) {
+            Move m{};
+            m.src = (Square)s;
+            m.dst = (Square)d;
+            if (illegal_reason(b, m) != nullptr) continue;
+            const bool promotes = pawn && (SQ_RANK(m.dst) == 0 || SQ_RANK(m.dst) == 7);
+            for (PieceType p : {Knight, Bishop, Rook, Queen}) {
+                Move mv = m;
+                if (promotes) mv.promoType = p;
+                char san[16] = "";
+                if (move2san(b, mv, san) == nullptr) break;
+                // The long-algebraic form the engine prints: standard castling as the king's
+                // two-square step, where libchess may encode it as king-takes-rook.
+                Square dst = mv.dst;
+                const Piece target = b.piecesOnSquares[mv.dst];
+                if (!b.isChess960 && !pawn && PC_TYPE(b.piecesOnSquares[s]) == King && target != PieceNone
+                    && PC_TYPE(target) == Rook && PC_COLOR(target) == b.sideToMove)
+                    dst = (Square)(mv.dst > mv.src ? mv.src + 2 : mv.src - 2);
+                result += square[mv.src];
+                result += square[dst];
+                if (promotes) result += uciPromoLetter[p];
+                result += ' ';
+                result += san;
+                result += '\n';
+                ++count;
+                if (!promotes) break;
+            }
+        }
+    }
+    if ((int)result.size() >= out_len) return 0;
+    std::memcpy(out, result.c_str(), result.size() + 1);
+    return count;
+}

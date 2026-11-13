@@ -46,14 +46,14 @@ struct PositionSheet: View {
                         if fenError == nil { dismiss() }
                     }
                     .disabled(fenText.trimmingCharacters(in: .whitespaces).isEmpty)
-                    Button("Paste and Load") {
-                        guard let text = UIPasteboard.general.string else {
-                            fenError = "The clipboard has no text."
-                            return
+                    // The system Paste button: see GamesView.pasteButton for why.
+                    PasteButton(payloadType: String.self) { strings in
+                        let text = strings.first ?? ""
+                        Task { @MainActor in
+                            fenText = text
+                            fenError = model.load(fen: text)
+                            if fenError == nil { dismiss() }
                         }
-                        fenText = text
-                        fenError = model.load(fen: text)
-                        if fenError == nil { dismiss() }
                     }
                     Button("Copy Current FEN") {
                         UIPasteboard.general.string = model.fen

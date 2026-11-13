@@ -69,11 +69,11 @@ struct AnalysisPanel: View {
     /// A quiet line under the analysis: why it is not searching, or searching less hard.
     private var footnote: String? {
         if notice != nil { return nil }
-        if let note = model.thermalNote, model.engine.status == .analyzing { return note }
+        if let note = model.thermalNote, model.isAnalyzing { return note }
         if model.searchCompleted, !model.currentLines.isEmpty {
             return "Search finished. Tap \u{25B6} at the top to search longer."
         }
-        if !model.analysisEnabled, model.engine.status != .analyzing, !model.currentLines.isEmpty {
+        if !model.analysisEnabled, !model.isAnalyzing, !model.currentLines.isEmpty {
             return "Stopped. Tap \u{25B6} at the top to continue."
         }
         return nil
@@ -111,9 +111,9 @@ struct AnalysisPanel: View {
     }
 }
 
-/// A horizontal bar showing White's share of the evaluation.
+/// A horizontal bar showing White's share of the evaluation, 0...1; nil shows it level.
 struct EvalBar: View {
-    let score: EngineScore?
+    let whiteShare: Double?
 
     var body: some View {
         GeometryReader { geo in
@@ -121,13 +121,13 @@ struct EvalBar: View {
                 Rectangle().fill(Color(white: 0.2))
                 Rectangle()
                     .fill(Color(white: 0.95))
-                    .frame(width: geo.size.width * (score?.whiteShare ?? 0.5))
-                    .animation(.easeOut(duration: 0.3), value: score?.whiteShare)
+                    .frame(width: geo.size.width * (whiteShare ?? 0.5))
+                    .animation(.easeOut(duration: 0.3), value: whiteShare)
             }
         }
         .frame(height: 8)
         .clipShape(Capsule())
         .accessibilityLabel("Evaluation")
-        .accessibilityValue(score?.text ?? "none")
+        .accessibilityValue(whiteShare.map { "White \(Int(($0 * 100).rounded())) percent" } ?? "none")
     }
 }

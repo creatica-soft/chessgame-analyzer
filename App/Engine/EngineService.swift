@@ -17,9 +17,25 @@ final class EngineService {
         case analyzing
     }
 
+    /// Who asked for a search. The Position and Games tabs share the one engine; a client can
+    /// stop only its own search, so one tab's housekeeping never cuts off the other's.
+    enum Client: Equatable {
+        case position
+        case game
+    }
+
     struct AnalysisLine: Equatable {
         var info: EngineInfo
         /// The PV in SAN, converted by libchess against `analyzedFEN`.
+        var san: [String]
+    }
+
+    /// What a search that reached its limit found, from the side to move's point of view.
+    struct SearchResult: Equatable {
+        var score: EngineScore
+        var depth: Int
+        var bestMove: String
+        var pv: [String]
         var san: [String]
     }
 
@@ -33,6 +49,8 @@ final class EngineService {
     private(set) var analyzedFEN: String?
     /// Set when the search of `analyzedFEN` reached its limit, rather than being stopped.
     private(set) var completedFEN: String?
+    /// Whose search `analyzedFEN` is.
+    private(set) var owner: Client?
     /// The thread count the engine was last given.
     private(set) var threads = 0
     private var hashMB = 0
@@ -46,6 +64,8 @@ final class EngineService {
     private var outstandingSearches = 0
     private var sink: LineSink?
     private var searchLimit: SearchLimit = .infinite
+    /// The caller waiting in `search`, resumed with the result, or nil if the search was stopped.
+    private var waiter: CheckedContinuation<SearchResult?, Never>?
 
     func start(threads: Int, hashMB: Int) {
         guard sink == nil else { return }
@@ -62,24 +82,26 @@ final class EngineService {
     }
 
     /// Applies resource settings. The engine resizes its pool and table only between searches,
-    /// so a running analysis is stopped and restarted around the change.
+    /// so a running search is stopped first. An interactive one is restarted here; one awaited
+    /// through `search` returns nil, and its caller decides whether to ask again.
     func configure(threads: Int, hashMB: Int) {
         guard threads != self.threads || hashMB != self.hashMB else { return }
         self.threads = threads
         self.hashMB = hashMB
-        let resume = searching ? analyzedFEN : nil
-        stop()
+        let resume = searching && waiter == nil ? analyzedFEN.map { ($0, owner ?? .position) } : nil
+        halt()
         send("setoption name Threads value \(threads)")
         send("setoption name Hash value \(hashMB)")
         send("isready")
-        if let resume { analyze(fen: resume, limit: searchLimit) }
+        if let (fen, client) = resume { analyze(fen: fen, limit: searchLimit, for: client) }
     }
 
-    /// Searches `fen` within `limit`, replacing any search in progress.
-    func analyze(fen: String, limit: SearchLimit) {
-        stop()
+    /// Searches `fen` within `limit`, replacing any search in progress, and publishes its lines.
+    func analyze(fen: String, limit: SearchLimit, for client: Client) {
+        halt()
         analyzedFEN = fen
         completedFEN = nil
+        owner = client
         lines = [:]
         searchLimit = limit
         send("position fen \(fen)")
@@ -88,18 +110,38 @@ final class EngineService {
         searching = true
     }
 
-    func stop() {
-        guard searching else { return }
-        send("stop")
-        searching = false
+    /// Searches `fen` to `limit` and returns what it found, or nil if the search was stopped
+    /// before reaching its limit: by `stop`, by another search, or by `configure`.
+    func search(fen: String, limit: SearchLimit, for client: Client) async -> SearchResult? {
+        await withCheckedContinuation { continuation in
+            analyze(fen: fen, limit: limit, for: client)
+            waiter = continuation
+        }
     }
 
-    /// Stops and forgets the last analysis, for a position the engine should not search.
-    func clear() {
-        stop()
+    /// Stops `client`'s search, if the current one is its.
+    func stop(_ client: Client) {
+        guard owner == client else { return }
+        halt()
+    }
+
+    /// Stops `client`'s search and forgets it, for a position the engine should not search.
+    func clear(_ client: Client) {
+        guard owner == client else { return }
+        halt()
         analyzedFEN = nil
         completedFEN = nil
         lines = [:]
+    }
+
+    private func halt() {
+        if let waiter {
+            self.waiter = nil
+            waiter.resume(returning: nil)
+        }
+        guard searching else { return }
+        send("stop")
+        searching = false
     }
 
     private func send(_ command: String) {
@@ -110,11 +152,18 @@ final class EngineService {
         switch UCIMessage.parse(line) {
         case .readyOK:
             ready = true
-        case .bestMove:
+        case .bestMove(let move, _):
             outstandingSearches = max(0, outstandingSearches - 1)
-            if outstandingSearches == 0, searching {
-                searching = false
-                completedFEN = analyzedFEN
+            guard outstandingSearches == 0, searching else { return }
+            searching = false
+            completedFEN = analyzedFEN
+            if let waiter {
+                self.waiter = nil
+                let best = lines[1]
+                waiter.resume(returning: best?.info.score.map {
+                    SearchResult(score: $0, depth: best?.info.depth ?? 0, bestMove: move,
+                                 pv: best?.info.pv ?? [move], san: best?.san ?? [])
+                })
             }
         case .info(let info):
             guard outstandingSearches == 1, let fen = analyzedFEN else { return }
@@ -130,7 +179,7 @@ final class EngineService {
     // `status` has left `.starting`, or they block the main thread for the engine's start-up.
 
     /// nil when the engine can search `fen`, otherwise why not.
-    static func validationError(fen: String) -> String? {
+    nonisolated static func validationError(fen: String) -> String? {
         var reason = [CChar](repeating: 0, count: 256)
         let ok = creatica_validate_fen(fen, &reason, Int32(reason.count))
         return ok == 1 ? nil : String(cString: reason)
@@ -142,7 +191,7 @@ final class EngineService {
     }
 
     /// For a valid position: whether the side to move has no legal move, and why.
-    static func terminal(fen: String) -> Terminal? {
+    nonisolated static func terminal(fen: String) -> Terminal? {
         switch creatica_terminal_state(fen) {
         case 1: .checkmate
         case 2: .stalemate
@@ -150,15 +199,49 @@ final class EngineService {
         }
     }
 
-    static func san(fen: String, uci: [String]) -> [String] {
+    nonisolated static func san(fen: String, uci: [String]) -> [String] {
         guard !uci.isEmpty else { return [] }
         var out = [CChar](repeating: 0, count: 4096)
         creatica_uci_to_san(fen, uci.joined(separator: " "), &out, Int32(out.count))
         return String(cString: out).split(separator: " ").map(String.init)
     }
 
+    /// One move of a replayed game: its long-algebraic form and the position after it.
+    struct ReplayedMove: Equatable {
+        var uci: String
+        var fenAfter: String
+    }
+
+    /// Plays `san` from `fen`, stopping at the first move libchess cannot read or finds illegal;
+    /// the result is shorter than `san` exactly when that happened.
+    nonisolated static func replay(fen: String, san: [String]) -> [ReplayedMove] {
+        guard !san.isEmpty else { return [] }
+        var out = [CChar](repeating: 0, count: 128 * (san.count + 1))
+        let played = Int(creatica_replay_san(fen, san.joined(separator: " "), &out, Int32(out.count)))
+        let lines = String(cString: out).split(separator: "\n").prefix(played)
+        return lines.compactMap { line in
+            guard let space = line.firstIndex(of: " ") else { return nil }
+            return ReplayedMove(uci: String(line[..<space]), fenAfter: String(line[line.index(after: space)...]))
+        }
+    }
+
+    struct LegalMove: Equatable, Sendable {
+        var uci: String
+        var san: String
+    }
+
+    /// Every legal move in `fen`.
+    nonisolated static func legalMoves(fen: String) -> [LegalMove] {
+        var out = [CChar](repeating: 0, count: 16 * 256)
+        let n = Int(creatica_legal_moves(fen, &out, Int32(out.count)))
+        return String(cString: out).split(separator: "\n").prefix(n).compactMap { line in
+            let parts = line.split(separator: " ")
+            return parts.count == 2 ? LegalMove(uci: String(parts[0]), san: String(parts[1])) : nil
+        }
+    }
+
     /// The FEN after playing `uci` from `fen`, or nil if any of the moves is illegal.
-    static func play(fen: String, uci: [String]) -> String? {
+    nonisolated static func play(fen: String, uci: [String]) -> String? {
         var out = [CChar](repeating: 0, count: 256)
         let played = creatica_play_moves(fen, uci.joined(separator: " "), &out, Int32(out.count))
         return played == uci.count ? String(cString: out) : nil

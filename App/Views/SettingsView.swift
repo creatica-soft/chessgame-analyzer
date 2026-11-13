@@ -36,6 +36,32 @@ enum EngineSettings {
     }
 }
 
+/// How far each position of a game is searched. Much less than an interactive search: a game is
+/// dozens of positions, and every one of them is searched.
+///
+/// By time rather than depth: measured 2026-11-13 on an iPhone 13 Pro held at thermal state
+/// "serious" (2 threads), depth 18 took 6 s per position on average and up to 10 s in the
+/// middlegame, so the length of an analysis depended on the game. A second per position makes
+/// it predictable, about 80 s for a 40-move game.
+enum GameSettings {
+    static let limitKindKey = "game.limitKind"
+    static let searchSecondsKey = "game.searchSeconds"
+    static let searchDepthKey = "game.searchDepth"
+
+    static let defaultLimitKind = EngineSettings.LimitKind.time
+    static let defaultSearchSeconds = 1
+    static let searchChoices = [1, 2, 3, 5, 10]
+    static let defaultSearchDepth = 18
+    static let depthRange = 8...30
+
+    static func limit(kind: EngineSettings.LimitKind, seconds: Int, depth: Int) -> SearchLimit {
+        switch kind {
+        case .time: .time(seconds: seconds)
+        case .depth: .depth(depth)
+        }
+    }
+}
+
 enum AnnotationSettings {
     static let inaccuracyKey = "annotation.inaccuracy"
     static let mistakeKey = "annotation.mistake"
@@ -48,6 +74,9 @@ struct SettingsView: View {
     @AppStorage(EngineSettings.limitKindKey) private var limitKind = EngineSettings.defaultLimitKind
     @AppStorage(EngineSettings.searchSecondsKey) private var searchSeconds = EngineSettings.defaultSearchSeconds
     @AppStorage(EngineSettings.searchDepthKey) private var searchDepth = EngineSettings.defaultSearchDepth
+    @AppStorage(GameSettings.limitKindKey) private var gameLimitKind = GameSettings.defaultLimitKind
+    @AppStorage(GameSettings.searchSecondsKey) private var gameSeconds = GameSettings.defaultSearchSeconds
+    @AppStorage(GameSettings.searchDepthKey) private var gameDepth = GameSettings.defaultSearchDepth
     @AppStorage(AnnotationSettings.inaccuracyKey) private var inaccuracy = AnnotationThresholds.standard.inaccuracy
     @AppStorage(AnnotationSettings.mistakeKey) private var mistake = AnnotationThresholds.standard.mistake
     @AppStorage(AnnotationSettings.blunderKey) private var blunder = AnnotationThresholds.standard.blunder
@@ -106,12 +135,25 @@ struct SettingsView: View {
         } header: {
             Text("Engine")
         } footer: {
-            Text("More threads search faster but heat the phone. When it gets warm the engine drops to \(EngineSettings.warmThreads) threads, and if it overheats analysis pauses.")
+            Text("More threads search faster but heat the phone. When it gets warm the engine drops to \(EngineSettings.warmThreads) threads, and to one when it is hot; analysis keeps going, more slowly.")
         }
     }
 
     private var annotationSection: some View {
         Section {
+            Picker("Each position", selection: $gameLimitKind) {
+                Text("Time").tag(EngineSettings.LimitKind.time)
+                Text("Depth").tag(EngineSettings.LimitKind.depth)
+            }
+            .pickerStyle(.segmented)
+            switch gameLimitKind {
+            case .time:
+                Picker("Time per position", selection: $gameSeconds) {
+                    ForEach(GameSettings.searchChoices, id: \.self) { Text("\($0) s").tag($0) }
+                }
+            case .depth:
+                Stepper("Depth: \(gameDepth)", value: $gameDepth, in: GameSettings.depthRange)
+            }
             // Each threshold stays at least a tenth of a pawn inside its neighbours.
             thresholdStepper("Inaccuracy ?!", value: $inaccuracy, from: 0.1, to: mistake - 0.1)
             thresholdStepper("Mistake ?", value: $mistake, from: inaccuracy + 0.1, to: blunder - 0.1)
@@ -128,7 +170,7 @@ struct SettingsView: View {
         } header: {
             Text("Game analysis")
         } footer: {
-            Text("When a game is annotated, a move is marked by how many pawns it loses against the engine's best move. Evaluations beyond ±\(Int(AnnotationThresholds.clampPawns)) pawns, and mates, count as \(Int(AnnotationThresholds.clampPawns)).")
+            Text("Every position of a game is searched once, to this limit. A move is marked by how many pawns it loses against the engine's best move. Evaluations beyond ±\(Int(AnnotationThresholds.clampPawns)) pawns, and mates, count as \(Int(AnnotationThresholds.clampPawns)).")
         }
     }
 

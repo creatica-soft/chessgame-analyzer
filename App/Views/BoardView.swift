@@ -7,7 +7,17 @@ struct BoardView: View {
     let selected: Square?
     /// The engine's best move, drawn as an arrow.
     let bestMove: (from: Square, to: Square)?
+    /// The move that led to this position, tinted.
+    var lastMove: (from: Square, to: Square)? = nil
     let onTap: (Square) -> Void
+
+    /// The from and to squares of a long-algebraic move.
+    static func squares(ofUCI move: String) -> (from: Square, to: Square)? {
+        guard move.count >= 4,
+              let from = Square(algebraic: move.prefix(2)),
+              let to = Square(algebraic: move.dropFirst(2).prefix(2)) else { return nil }
+        return (from, to)
+    }
 
     static let light = Color(red: 0.94, green: 0.85, blue: 0.71)
     static let dark = Color(red: 0.71, green: 0.53, blue: 0.39)
@@ -49,10 +59,14 @@ struct BoardView: View {
 
     private func draw(in context: inout GraphicsContext, cell: CGFloat) {
         let highlighted: Set<Square> = bestMove.map { [$0.from, $0.to] } ?? []
+        let previous: Set<Square> = lastMove.map { [$0.from, $0.to] } ?? []
         for sq in 0..<64 {
             let rect = CGRect(origin: origin(of: sq, cell: cell), size: CGSize(width: cell, height: cell))
             let isLight = (sq.file + sq.rank) % 2 == 1
             context.fill(Path(rect), with: .color(isLight ? Self.light : Self.dark))
+            if previous.contains(sq) {
+                context.fill(Path(rect), with: .color(.yellow.opacity(0.32)))
+            }
             if highlighted.contains(sq) {
                 context.fill(Path(rect), with: .color(.green.opacity(0.28)))
             }

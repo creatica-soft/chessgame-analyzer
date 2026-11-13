@@ -15,6 +15,14 @@ enum EngineScore: Sendable, Equatable {
         }
     }
 
+    /// The same score for the other side.
+    var negated: EngineScore {
+        switch self {
+        case .centipawns(let cp): .centipawns(-cp)
+        case .mate(let n): .mate(-n)
+        }
+    }
+
     /// The displayed text, assuming the score is already from White's point of view.
     var text: String {
         switch self {
