@@ -1,0 +1,4 @@
+module CreaticaBridge {
+    header "CreaticaBridge.h"
+    export *
+}

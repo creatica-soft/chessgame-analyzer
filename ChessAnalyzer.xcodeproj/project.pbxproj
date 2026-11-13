@@ -1,0 +1,824 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0373CE25AFAB8B865EC1A9A6 /* PiecePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1968D526A92E3C2D0152064F /* PiecePalette.swift */; };
+		0CFD2B14C64A63F66C27C5D6 /* tbprobe.c in Sources */ = {isa = PBXBuildFile; fileRef = 0140C3A999EF55C03FBFCE05 /* tbprobe.c */; };
+		10FC5F85EEBCFEE22C13D57B /* AnalysisPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19DF7BFE3CBEF8A44B4F0255 /* AnalysisPanel.swift */; };
+		155A54EC885B6AA8A6695045 /* PositionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 985C1EC4874DE2B1781F949B /* PositionSheet.swift */; };
+		25BF94C87058471E01033B23 /* Position.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB25E0683A83F5BC8E6BE5C1 /* Position.swift */; };
+		2617E35EE2DBBC9FDD1B5921 /* evaluate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E50BB1D1F6B041912115380 /* evaluate.cpp */; };
+		278D010EC4B985930552AE18 /* ChessAnalyzerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B4CAC4B6E14CE12D491C1E4 /* ChessAnalyzerApp.swift */; };
+		2C8AC1BEA4DC6B489449A489 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC3527EDE7BAF9F468614DE /* SettingsView.swift */; };
+		3C34AF8D8831960C10264872 /* ModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 399FFF7E25C64F61C71F4B79 /* ModelTests.swift */; };
+		403B665823A1D0D0D0313C25 /* board.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4AA403DF2979A674F2A2D2E4 /* board.cpp */; };
+		42FFF28D86E7A600905070CE /* engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08427A9FB44AF6D3464A762F /* engine.cpp */; };
+		4B3F41E7EAF691A18BAF71E7 /* curl.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5DD37FDE9C97564607612516 /* curl.h */; };
+		4DB5566C106A292A53109A0D /* half_ka_v2_hm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 757F5B6A24B580A0FA6C7C66 /* half_ka_v2_hm.cpp */; };
+		6B19E22755FBD74A71764AA7 /* Piece.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5731D4C681520B84B4348A96 /* Piece.swift */; };
+		6CAF7EBAF3C95EB9C8C3784C /* zobrist-hash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FA7283F91278E9A71A65EAD7 /* zobrist-hash.cpp */; };
+		70D42E28624C02D969C192F5 /* move.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09F217E4D6E44E0964BEC200 /* move.cpp */; };
+		734F8D40D10A469C4FD8EBEF /* nnue_misc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4E61EAEF664D3F434162B8B2 /* nnue_misc.cpp */; };
+		7DE6F78C72D719A37673DD8E /* AnalysisModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F878ED6A8E6E752EDAD87086 /* AnalysisModel.swift */; };
+		826287EF428558A860B57F30 /* CreaticaBridge.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00772461BCB5F236E5DAF968 /* CreaticaBridge.h */; };
+		83535D070723EBFF23FE29E0 /* uci_frontend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 603DE39D8264A45BA4300906 /* uci_frontend.cpp */; };
+		8463900393599AAC508679C1 /* misc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 057FE249B4D3015DEF6DD201 /* misc.cpp */; };
+		8D513694FCE7A01B7C84C6CC /* tag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30BF14BC2779C6A82D4C08AB /* tag.cpp */; };
+		9809820C37327967A3ED0D87 /* creatica_ab.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6BC2BDA91F82B40D73CB1259 /* creatica_ab.cpp */; settings = {COMPILER_FLAGS = "-Dmain=creatica_ab_main"; }; };
+		A2E342B0BE9B027412011844 /* CreaticaBridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B71C9FDEFE6AB1083A88B40 /* CreaticaBridge.cpp */; };
+		AB4438864A6B24EF30F323AB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF529E7EB2732E6F9AD6BCF /* ContentView.swift */; };
+		B1AFC3477FA84E66B5F52D69 /* bitboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CCCEA10B875203814199D1 /* bitboard.cpp */; };
+		BD880E9A5CE225577BF90712 /* UCI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E598A51DF41120BB6854AA8 /* UCI.swift */; };
+		C7A5F5291319D8F2B69EB0E3 /* memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FC28D3737B503C46FC565E7E /* memory.cpp */; };
+		D6EB28DE7DA01DB3609E0828 /* libCreaticaEngine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6885B39AB568914F650011CF /* libCreaticaEngine.a */; };
+		DC910412E6FF2F4485F7E2C8 /* nnue_accumulator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CC9539CE426A21C361490A5D /* nnue_accumulator.cpp */; };
+		E052EA775AAD3D9712E39D38 /* Annotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2B6859D7F126D65A7671C54 /* Annotation.swift */; };
+		E05EDA886D527E7C81D7CD8C /* fen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3131A591096276E5666C7507 /* fen.cpp */; };
+		E3DC2172CB0AE648DA75DEC7 /* EngineService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62E0B821B45003A75ED77C5A /* EngineService.swift */; };
+		E9FBD1FDFBF4BD18F7A91974 /* network.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26744203B817618F8D03F626 /* network.cpp */; };
+		F17EC671287F08CF2D5DB74F /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45DB6B0468CE2FA7192274F5 /* BoardView.swift */; };
+		F27B5B630F0F6FB3C665BC3A /* full_threats.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 084F53B4FB849B1ADA29B419 /* full_threats.cpp */; };
+		FCA79B4518252066AC9FB810 /* pgn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9CF3D02A9CCCC601A8F66B73 /* pgn.cpp */; };
+		FD99619587085A9948E2BED4 /* nnue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 819AE56AD9872F9294581158 /* nnue.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		30F0D0801A2C7184C8AAAAC9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 137CA5B2D38348A872F49A8D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B3C72116B337DBFDB43B1204;
+			remoteInfo = ChessAnalyzer;
+		};
+		73A60C5BF5BFC97EA375D205 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 137CA5B2D38348A872F49A8D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BEF284E4F4C3579A5F2743C7;
+			remoteInfo = CreaticaEngine;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C60F589F76A83B63BA499256 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+				826287EF428558A860B57F30 /* CreaticaBridge.h in CopyFiles */,
+				4B3F41E7EAF691A18BAF71E7 /* curl.h in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		00772461BCB5F236E5DAF968 /* CreaticaBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CreaticaBridge.h; sourceTree = "<group>"; };
+		0140C3A999EF55C03FBFCE05 /* tbprobe.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tbprobe.c; sourceTree = "<group>"; };
+		057FE249B4D3015DEF6DD201 /* misc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = misc.cpp; sourceTree = "<group>"; };
+		08427A9FB44AF6D3464A762F /* engine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = engine.cpp; sourceTree = "<group>"; };
+		084F53B4FB849B1ADA29B419 /* full_threats.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = full_threats.cpp; sourceTree = "<group>"; };
+		09F217E4D6E44E0964BEC200 /* move.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = move.cpp; sourceTree = "<group>"; };
+		0E50BB1D1F6B041912115380 /* evaluate.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = evaluate.cpp; sourceTree = "<group>"; };
+		11CCCEA10B875203814199D1 /* bitboard.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bitboard.cpp; sourceTree = "<group>"; };
+		1968D526A92E3C2D0152064F /* PiecePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiecePalette.swift; sourceTree = "<group>"; };
+		19DF7BFE3CBEF8A44B4F0255 /* AnalysisPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisPanel.swift; sourceTree = "<group>"; };
+		26744203B817618F8D03F626 /* network.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = network.cpp; sourceTree = "<group>"; };
+		29487E6681367D81F23EEBA5 /* ChessAnalyzerTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ChessAnalyzerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B71C9FDEFE6AB1083A88B40 /* CreaticaBridge.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CreaticaBridge.cpp; sourceTree = "<group>"; };
+		2EF529E7EB2732E6F9AD6BCF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		30BF14BC2779C6A82D4C08AB /* tag.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tag.cpp; sourceTree = "<group>"; };
+		3131A591096276E5666C7507 /* fen.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = fen.cpp; sourceTree = "<group>"; };
+		399FFF7E25C64F61C71F4B79 /* ModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelTests.swift; sourceTree = "<group>"; };
+		45DB6B0468CE2FA7192274F5 /* BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardView.swift; sourceTree = "<group>"; };
+		4AA403DF2979A674F2A2D2E4 /* board.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = board.cpp; sourceTree = "<group>"; };
+		4E61EAEF664D3F434162B8B2 /* nnue_misc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = nnue_misc.cpp; sourceTree = "<group>"; };
+		5731D4C681520B84B4348A96 /* Piece.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piece.swift; sourceTree = "<group>"; };
+		5DD37FDE9C97564607612516 /* curl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = curl.h; sourceTree = "<group>"; };
+		603DE39D8264A45BA4300906 /* uci_frontend.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = uci_frontend.cpp; sourceTree = "<group>"; };
+		62E0B821B45003A75ED77C5A /* EngineService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineService.swift; sourceTree = "<group>"; };
+		6885B39AB568914F650011CF /* libCreaticaEngine.a */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = archive.ar; path = libCreaticaEngine.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		6BC2BDA91F82B40D73CB1259 /* creatica_ab.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = creatica_ab.cpp; sourceTree = "<group>"; };
+		6E598A51DF41120BB6854AA8 /* UCI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UCI.swift; sourceTree = "<group>"; };
+		757F5B6A24B580A0FA6C7C66 /* half_ka_v2_hm.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = half_ka_v2_hm.cpp; sourceTree = "<group>"; };
+		7CC3527EDE7BAF9F468614DE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		819AE56AD9872F9294581158 /* nnue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = nnue.cpp; sourceTree = "<group>"; };
+		8B4CAC4B6E14CE12D491C1E4 /* ChessAnalyzerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessAnalyzerApp.swift; sourceTree = "<group>"; };
+		90098D8B75960A0BCEEE53A7 /* ChessAnalyzer.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ChessAnalyzer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		985C1EC4874DE2B1781F949B /* PositionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionSheet.swift; sourceTree = "<group>"; };
+		9CF3D02A9CCCC601A8F66B73 /* pgn.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pgn.cpp; sourceTree = "<group>"; };
+		CC9539CE426A21C361490A5D /* nnue_accumulator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = nnue_accumulator.cpp; sourceTree = "<group>"; };
+		E2B6859D7F126D65A7671C54 /* Annotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Annotation.swift; sourceTree = "<group>"; };
+		EB25E0683A83F5BC8E6BE5C1 /* Position.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Position.swift; sourceTree = "<group>"; };
+		F878ED6A8E6E752EDAD87086 /* AnalysisModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisModel.swift; sourceTree = "<group>"; };
+		FA7283F91278E9A71A65EAD7 /* zobrist-hash.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "zobrist-hash.cpp"; sourceTree = "<group>"; };
+		FC28D3737B503C46FC565E7E /* memory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = memory.cpp; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2DB20E86E9505EA075139421 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D6EB28DE7DA01DB3609E0828 /* libCreaticaEngine.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0424DFEF8D6F5D6C2071F895 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				00772461BCB5F236E5DAF968 /* CreaticaBridge.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		08D2A3AA7617318924E4DE0A /* ap */ = {
+			isa = PBXGroup;
+			children = (
+				D55AE164611EE827CB9D132B /* libchess */,
+			);
+			name = ap;
+			path = ..;
+			sourceTree = "<group>";
+		};
+		1A7349A4230AB9B1C5AEAB2E /* curl */ = {
+			isa = PBXGroup;
+			children = (
+				5DD37FDE9C97564607612516 /* curl.h */,
+			);
+			path = curl;
+			sourceTree = "<group>";
+		};
+		36E4A298A06F553E418F6418 = {
+			isa = PBXGroup;
+			children = (
+				08D2A3AA7617318924E4DE0A /* ap */,
+				B2732AAA8740ED15EBE0CBAF /* App */,
+				5DFED9AF6C09E90AB6F63AA5 /* EngineBridge */,
+				7572E8F6D7DF18242FE1CED2 /* Tests */,
+				ED33769A7937CB283D51F19F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		479A9CAB7413031214AF10AD /* features */ = {
+			isa = PBXGroup;
+			children = (
+				084F53B4FB849B1ADA29B419 /* full_threats.cpp */,
+				757F5B6A24B580A0FA6C7C66 /* half_ka_v2_hm.cpp */,
+			);
+			path = features;
+			sourceTree = "<group>";
+		};
+		509D0920F4A6876ED398672E /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				F878ED6A8E6E752EDAD87086 /* AnalysisModel.swift */,
+				E2B6859D7F126D65A7671C54 /* Annotation.swift */,
+				5731D4C681520B84B4348A96 /* Piece.swift */,
+				EB25E0683A83F5BC8E6BE5C1 /* Position.swift */,
+				6E598A51DF41120BB6854AA8 /* UCI.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		5517E8697AA1B9467BB3F844 /* compat */ = {
+			isa = PBXGroup;
+			children = (
+				1A7349A4230AB9B1C5AEAB2E /* curl */,
+			);
+			path = compat;
+			sourceTree = "<group>";
+		};
+		5DFED9AF6C09E90AB6F63AA5 /* EngineBridge */ = {
+			isa = PBXGroup;
+			children = (
+				5517E8697AA1B9467BB3F844 /* compat */,
+				0424DFEF8D6F5D6C2071F895 /* include */,
+				2B71C9FDEFE6AB1083A88B40 /* CreaticaBridge.cpp */,
+			);
+			path = EngineBridge;
+			sourceTree = "<group>";
+		};
+		714A16100CA4F449E4628C21 /* Engine */ = {
+			isa = PBXGroup;
+			children = (
+				62E0B821B45003A75ED77C5A /* EngineService.swift */,
+			);
+			path = Engine;
+			sourceTree = "<group>";
+		};
+		7572E8F6D7DF18242FE1CED2 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				399FFF7E25C64F61C71F4B79 /* ModelTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		AC0EB245B41DE53EF4BB4942 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				19DF7BFE3CBEF8A44B4F0255 /* AnalysisPanel.swift */,
+				45DB6B0468CE2FA7192274F5 /* BoardView.swift */,
+				2EF529E7EB2732E6F9AD6BCF /* ContentView.swift */,
+				1968D526A92E3C2D0152064F /* PiecePalette.swift */,
+				985C1EC4874DE2B1781F949B /* PositionSheet.swift */,
+				7CC3527EDE7BAF9F468614DE /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		B2732AAA8740ED15EBE0CBAF /* App */ = {
+			isa = PBXGroup;
+			children = (
+				714A16100CA4F449E4628C21 /* Engine */,
+				509D0920F4A6876ED398672E /* Model */,
+				AC0EB245B41DE53EF4BB4942 /* Views */,
+				8B4CAC4B6E14CE12D491C1E4 /* ChessAnalyzerApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		C57EEEBDC7BF8187582E1F06 /* nnue */ = {
+			isa = PBXGroup;
+			children = (
+				E54680A0B7ED1902D512135C /* nnue */,
+				11CCCEA10B875203814199D1 /* bitboard.cpp */,
+				0E50BB1D1F6B041912115380 /* evaluate.cpp */,
+				FC28D3737B503C46FC565E7E /* memory.cpp */,
+				057FE249B4D3015DEF6DD201 /* misc.cpp */,
+				819AE56AD9872F9294581158 /* nnue.cpp */,
+			);
+			path = nnue;
+			sourceTree = "<group>";
+		};
+		D55AE164611EE827CB9D132B /* libchess */ = {
+			isa = PBXGroup;
+			children = (
+				C57EEEBDC7BF8187582E1F06 /* nnue */,
+				4AA403DF2979A674F2A2D2E4 /* board.cpp */,
+				6BC2BDA91F82B40D73CB1259 /* creatica_ab.cpp */,
+				08427A9FB44AF6D3464A762F /* engine.cpp */,
+				3131A591096276E5666C7507 /* fen.cpp */,
+				09F217E4D6E44E0964BEC200 /* move.cpp */,
+				9CF3D02A9CCCC601A8F66B73 /* pgn.cpp */,
+				30BF14BC2779C6A82D4C08AB /* tag.cpp */,
+				0140C3A999EF55C03FBFCE05 /* tbprobe.c */,
+				603DE39D8264A45BA4300906 /* uci_frontend.cpp */,
+				FA7283F91278E9A71A65EAD7 /* zobrist-hash.cpp */,
+			);
+			path = libchess;
+			sourceTree = "<group>";
+		};
+		E54680A0B7ED1902D512135C /* nnue */ = {
+			isa = PBXGroup;
+			children = (
+				479A9CAB7413031214AF10AD /* features */,
+				26744203B817618F8D03F626 /* network.cpp */,
+				CC9539CE426A21C361490A5D /* nnue_accumulator.cpp */,
+				4E61EAEF664D3F434162B8B2 /* nnue_misc.cpp */,
+			);
+			path = nnue;
+			sourceTree = "<group>";
+		};
+		ED33769A7937CB283D51F19F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				90098D8B75960A0BCEEE53A7 /* ChessAnalyzer.app */,
+				29487E6681367D81F23EEBA5 /* ChessAnalyzerTests.xctest */,
+				6885B39AB568914F650011CF /* libCreaticaEngine.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		79F15F1987457D92DE6DDA04 /* ChessAnalyzerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 98668823236E51B2C3D17055 /* Build configuration list for PBXNativeTarget "ChessAnalyzerTests" */;
+			buildPhases = (
+				79483B53564FDFBCF9BF80E9 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0E286645C4DDDD544C5E2745 /* PBXTargetDependency */,
+			);
+			name = ChessAnalyzerTests;
+			packageProductDependencies = (
+			);
+			productName = ChessAnalyzerTests;
+			productReference = 29487E6681367D81F23EEBA5 /* ChessAnalyzerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		B3C72116B337DBFDB43B1204 /* ChessAnalyzer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7CBCDF1FAE735A011F493DD0 /* Build configuration list for PBXNativeTarget "ChessAnalyzer" */;
+			buildPhases = (
+				E1D71FE84349938091F7AABD /* Sources */,
+				2DB20E86E9505EA075139421 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CCE2C85F35616589547431BC /* PBXTargetDependency */,
+			);
+			name = ChessAnalyzer;
+			packageProductDependencies = (
+			);
+			productName = ChessAnalyzer;
+			productReference = 90098D8B75960A0BCEEE53A7 /* ChessAnalyzer.app */;
+			productType = "com.apple.product-type.application";
+		};
+		BEF284E4F4C3579A5F2743C7 /* CreaticaEngine */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 34DAF07722F38C08EBE6B881 /* Build configuration list for PBXNativeTarget "CreaticaEngine" */;
+			buildPhases = (
+				C60F589F76A83B63BA499256 /* CopyFiles */,
+				CA136B3D4DD2A3E9486A9295 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CreaticaEngine;
+			packageProductDependencies = (
+			);
+			productName = CreaticaEngine;
+			productReference = 6885B39AB568914F650011CF /* libCreaticaEngine.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		137CA5B2D38348A872F49A8D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					79F15F1987457D92DE6DDA04 = {
+						DevelopmentTeam = 4LGU8XMUK2;
+						ProvisioningStyle = Automatic;
+					};
+					B3C72116B337DBFDB43B1204 = {
+						DevelopmentTeam = 4LGU8XMUK2;
+						ProvisioningStyle = Automatic;
+					};
+					BEF284E4F4C3579A5F2743C7 = {
+						DevelopmentTeam = 4LGU8XMUK2;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 11A214F6339585F3257E42B2 /* Build configuration list for PBXProject "ChessAnalyzer" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 36E4A298A06F553E418F6418;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = ED33769A7937CB283D51F19F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BEF284E4F4C3579A5F2743C7 /* CreaticaEngine */,
+				B3C72116B337DBFDB43B1204 /* ChessAnalyzer */,
+				79F15F1987457D92DE6DDA04 /* ChessAnalyzerTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		79483B53564FDFBCF9BF80E9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3C34AF8D8831960C10264872 /* ModelTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA136B3D4DD2A3E9486A9295 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A2E342B0BE9B027412011844 /* CreaticaBridge.cpp in Sources */,
+				B1AFC3477FA84E66B5F52D69 /* bitboard.cpp in Sources */,
+				403B665823A1D0D0D0313C25 /* board.cpp in Sources */,
+				9809820C37327967A3ED0D87 /* creatica_ab.cpp in Sources */,
+				42FFF28D86E7A600905070CE /* engine.cpp in Sources */,
+				2617E35EE2DBBC9FDD1B5921 /* evaluate.cpp in Sources */,
+				E05EDA886D527E7C81D7CD8C /* fen.cpp in Sources */,
+				F27B5B630F0F6FB3C665BC3A /* full_threats.cpp in Sources */,
+				4DB5566C106A292A53109A0D /* half_ka_v2_hm.cpp in Sources */,
+				C7A5F5291319D8F2B69EB0E3 /* memory.cpp in Sources */,
+				8463900393599AAC508679C1 /* misc.cpp in Sources */,
+				70D42E28624C02D969C192F5 /* move.cpp in Sources */,
+				E9FBD1FDFBF4BD18F7A91974 /* network.cpp in Sources */,
+				FD99619587085A9948E2BED4 /* nnue.cpp in Sources */,
+				DC910412E6FF2F4485F7E2C8 /* nnue_accumulator.cpp in Sources */,
+				734F8D40D10A469C4FD8EBEF /* nnue_misc.cpp in Sources */,
+				FCA79B4518252066AC9FB810 /* pgn.cpp in Sources */,
+				8D513694FCE7A01B7C84C6CC /* tag.cpp in Sources */,
+				0CFD2B14C64A63F66C27C5D6 /* tbprobe.c in Sources */,
+				83535D070723EBFF23FE29E0 /* uci_frontend.cpp in Sources */,
+				6CAF7EBAF3C95EB9C8C3784C /* zobrist-hash.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E1D71FE84349938091F7AABD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7DE6F78C72D719A37673DD8E /* AnalysisModel.swift in Sources */,
+				10FC5F85EEBCFEE22C13D57B /* AnalysisPanel.swift in Sources */,
+				E052EA775AAD3D9712E39D38 /* Annotation.swift in Sources */,
+				F17EC671287F08CF2D5DB74F /* BoardView.swift in Sources */,
+				278D010EC4B985930552AE18 /* ChessAnalyzerApp.swift in Sources */,
+				AB4438864A6B24EF30F323AB /* ContentView.swift in Sources */,
+				E3DC2172CB0AE648DA75DEC7 /* EngineService.swift in Sources */,
+				6B19E22755FBD74A71764AA7 /* Piece.swift in Sources */,
+				0373CE25AFAB8B865EC1A9A6 /* PiecePalette.swift in Sources */,
+				25BF94C87058471E01033B23 /* Position.swift in Sources */,
+				155A54EC885B6AA8A6695045 /* PositionSheet.swift in Sources */,
+				2C8AC1BEA4DC6B489449A489 /* SettingsView.swift in Sources */,
+				BD880E9A5CE225577BF90712 /* UCI.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0E286645C4DDDD544C5E2745 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B3C72116B337DBFDB43B1204 /* ChessAnalyzer */;
+			targetProxy = 30F0D0801A2C7184C8AAAAC9 /* PBXContainerItemProxy */;
+		};
+		CCE2C85F35616589547431BC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BEF284E4F4C3579A5F2743C7 /* CreaticaEngine */;
+			targetProxy = 73A60C5BF5BFC97EA375D205 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		05397E810685B470A3162AC2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.creatica.ChessAnalyzerTests;
+				SDKROOT = iphoneos;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/EngineBridge/include";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ChessAnalyzer.app/ChessAnalyzer";
+			};
+			name = Debug;
+		};
+		257C07D6D5E2C80DF2092A55 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.creatica.ChessAnalyzerTests;
+				SDKROOT = iphoneos;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/EngineBridge/include";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ChessAnalyzer.app/ChessAnalyzer";
+			};
+			name = Release;
+		};
+		2D80DA5A70B24D427913EDB5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 4LGU8XMUK2;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LIBCHESS_DIR = "$(SRCROOT)/../libchess";
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3EF135E603C2E676508C6B13 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Chess Analyzer";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.board-games";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LLVM_LTO = YES;
+				MARKETING_VERSION = 0.1.0;
+				OTHER_LDFLAGS = (
+					"-lc++",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.creatica.chessanalyzer;
+				PRODUCT_NAME = ChessAnalyzer;
+				SDKROOT = iphoneos;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/EngineBridge/include";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		53F272865A0BBFD9A5671869 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 4LGU8XMUK2;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LIBCHESS_DIR = "$(SRCROOT)/../libchess";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		57E9A41076A170E26768FA30 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				GCC_C_LANGUAGE_STANDARD = c11;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					NDEBUG,
+					USE_PTHREADS,
+					IS_64BIT,
+					USE_POPCNT,
+					"USE_NEON=8",
+					USE_NEON_DOTPROD,
+					CREATICA_ECHO_ENGINE,
+				);
+				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(LIBCHESS_DIR)",
+					"$(LIBCHESS_DIR)/nnue",
+					"$(SRCROOT)/EngineBridge/include",
+					"$(SRCROOT)/EngineBridge/compat",
+				);
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_CFLAGS = (
+					"-march=armv8.2-a+dotprod",
+					"-funroll-loops",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.creatica.CreaticaEngine;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		76788DB219FD988496E93609 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Chess Analyzer";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.board-games";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				OTHER_LDFLAGS = (
+					"-lc++",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.creatica.chessanalyzer;
+				PRODUCT_NAME = ChessAnalyzer;
+				SDKROOT = iphoneos;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/EngineBridge/include";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8D23EDF059B060F783D4325F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				GCC_C_LANGUAGE_STANDARD = c11;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					NDEBUG,
+					USE_PTHREADS,
+					IS_64BIT,
+					USE_POPCNT,
+					"USE_NEON=8",
+					USE_NEON_DOTPROD,
+				);
+				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(LIBCHESS_DIR)",
+					"$(LIBCHESS_DIR)/nnue",
+					"$(SRCROOT)/EngineBridge/include",
+					"$(SRCROOT)/EngineBridge/compat",
+				);
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LLVM_LTO = YES;
+				OTHER_CFLAGS = (
+					"-march=armv8.2-a+dotprod",
+					"-funroll-loops",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.creatica.CreaticaEngine;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		11A214F6339585F3257E42B2 /* Build configuration list for PBXProject "ChessAnalyzer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2D80DA5A70B24D427913EDB5 /* Debug */,
+				53F272865A0BBFD9A5671869 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		34DAF07722F38C08EBE6B881 /* Build configuration list for PBXNativeTarget "CreaticaEngine" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				57E9A41076A170E26768FA30 /* Debug */,
+				8D23EDF059B060F783D4325F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7CBCDF1FAE735A011F493DD0 /* Build configuration list for PBXNativeTarget "ChessAnalyzer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				76788DB219FD988496E93609 /* Debug */,
+				3EF135E603C2E676508C6B13 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		98668823236E51B2C3D17055 /* Build configuration list for PBXNativeTarget "ChessAnalyzerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				05397E810685B470A3162AC2 /* Debug */,
+				257C07D6D5E2C80DF2092A55 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 137CA5B2D38348A872F49A8D /* Project object */;
+}

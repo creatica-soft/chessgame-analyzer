@@ -1,0 +1,142 @@
+# Generate the Xcode project with:  xcodegen generate
+#
+# The engine is compiled straight from the libchess checkout next to this one (LIBCHESS_DIR), so
+# engine changes there reach the app on the next build. Nothing in libchess is modified; see
+# EngineBridge/CreaticaBridge.cpp for how the UCI engine is hosted in-process.
+name: ChessAnalyzer
+options:
+  bundleIdPrefix: org.creatica
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: 4LGU8XMUK2
+    CODE_SIGN_STYLE: Automatic
+    LIBCHESS_DIR: $(SRCROOT)/../libchess
+    # A13 and later all have the ARMv8.2 dot-product instructions the NNUE kernels use, and
+    # iOS 26 runs on nothing older.
+    TARGETED_DEVICE_FAMILY: "1,2"
+
+targets:
+  CreaticaEngine:
+    type: library.static
+    platform: iOS
+    sources:
+      - path: EngineBridge
+        excludes: ["include/module.modulemap"]
+      - path: ../libchess/creatica_ab.cpp
+        # Its main() becomes a function the bridge runs on a thread of its own.
+        compilerFlags: "-Dmain=creatica_ab_main"
+      - path: ../libchess/uci_frontend.cpp
+      - path: ../libchess/tbprobe.c
+      - path: ../libchess/board.cpp
+      - path: ../libchess/engine.cpp
+      - path: ../libchess/fen.cpp
+      - path: ../libchess/move.cpp
+      - path: ../libchess/pgn.cpp
+      - path: ../libchess/tag.cpp
+      - path: ../libchess/zobrist-hash.cpp
+      - path: ../libchess/nnue/nnue/network.cpp
+      - path: ../libchess/nnue/nnue/nnue_accumulator.cpp
+      - path: ../libchess/nnue/nnue/nnue_misc.cpp
+      - path: ../libchess/nnue/nnue/features/half_ka_v2_hm.cpp
+      - path: ../libchess/nnue/nnue/features/full_threats.cpp
+      - path: ../libchess/nnue/bitboard.cpp
+      - path: ../libchess/nnue/evaluate.cpp
+      - path: ../libchess/nnue/memory.cpp
+      - path: ../libchess/nnue/misc.cpp
+      - path: ../libchess/nnue/nnue.cpp
+    settings:
+      base:
+        CLANG_CXX_LANGUAGE_STANDARD: c++20
+        GCC_C_LANGUAGE_STANDARD: c11
+        # The engine is unusable unoptimised, so Debug builds optimise it too. Asserts stay off
+        # for the same reason; libchess's own test harnesses are where they earn their cost.
+        GCC_OPTIMIZATION_LEVEL: "3"
+        GCC_PREPROCESSOR_DEFINITIONS:
+          - NDEBUG
+          - USE_PTHREADS
+          - IS_64BIT
+          - USE_POPCNT
+          - USE_NEON=8
+          - USE_NEON_DOTPROD
+        OTHER_CFLAGS: ["-march=armv8.2-a+dotprod", "-funroll-loops"]
+        # The nets are pulled in by incbin from LIBCHESS_DIR, which is why it is a search path.
+        HEADER_SEARCH_PATHS:
+          - $(LIBCHESS_DIR)
+          - $(LIBCHESS_DIR)/nnue
+          - $(SRCROOT)/EngineBridge/include
+          - $(SRCROOT)/EngineBridge/compat
+        GCC_WARN_INHIBIT_ALL_WARNINGS: YES
+        SKIP_INSTALL: YES
+      configs:
+        Debug:
+          GCC_PREPROCESSOR_DEFINITIONS:
+            - NDEBUG
+            - USE_PTHREADS
+            - IS_64BIT
+            - USE_POPCNT
+            - USE_NEON=8
+            - USE_NEON_DOTPROD
+            - CREATICA_ECHO_ENGINE
+        Release:
+          LLVM_LTO: YES
+
+  ChessAnalyzer:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+    dependencies:
+      - target: CreaticaEngine
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.creatica.chessanalyzer
+        PRODUCT_NAME: ChessAnalyzer
+        SWIFT_VERSION: "6.0"
+        SWIFT_INCLUDE_PATHS: $(SRCROOT)/EngineBridge/include
+        OTHER_LDFLAGS: ["-lc++"]
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Chess Analyzer
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.board-games
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        ENABLE_PREVIEWS: YES
+      configs:
+        Release:
+          LLVM_LTO: YES
+
+  ChessAnalyzerTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+    dependencies:
+      - target: ChessAnalyzer
+    settings:
+      base:
+        SWIFT_VERSION: "6.0"
+        SWIFT_INCLUDE_PATHS: $(SRCROOT)/EngineBridge/include
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  ChessAnalyzer:
+    build:
+      targets:
+        ChessAnalyzer: all
+        ChessAnalyzerTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - ChessAnalyzerTests
+    archive:
+      config: Release
