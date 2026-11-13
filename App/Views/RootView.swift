@@ -171,6 +171,65 @@ struct RootView: View {
 
 #if DEBUG
 enum DemoGame {
+    /// The Opera Game's final position, 17. Rd8#.
+    static let operaFinal = "1n1Rkb1r/p4ppp/4q3/4p1B1/4P3/8/PPP2PPP/2K5 b k - 1 17"
+
+    /// A book page with a diagram of `fen`: caption, framed board with hatched dark squares,
+    /// pieces from a font's chess symbols, the page turned by `degrees`.
+    static func diagram(fen: String = operaFinal, degrees: Double = 2, font: String = "Menlo") -> UIImage {
+        let size = CGSize(width: 1000, height: 1300)
+        let position = (try? Position(fen: fen)) ?? .start
+        return UIGraphicsImageRenderer(size: size).image { context in
+            let cg = context.cgContext
+            UIColor(white: 0.97, alpha: 1).setFill()
+            cg.fill(CGRect(origin: .zero, size: size))
+            cg.translateBy(x: size.width / 2, y: size.height / 2)
+            cg.rotate(by: degrees * .pi / 180)
+            cg.translateBy(x: -size.width / 2, y: -size.height / 2)
+            let text: [NSAttributedString.Key: Any] = [.font: UIFont(name: "Georgia", size: 30) ?? .systemFont(ofSize: 30),
+                                                       .foregroundColor: UIColor.black]
+            ("Diagram 12. After 17. Rd8 mate. White's last move closed the game in style." as NSString)
+                .draw(in: CGRect(x: 120, y: 120, width: 760, height: 120), withAttributes: text)
+            let S = 70.0, x0 = 220.0, y0 = 300.0
+            // Frame, a little outside the board.
+            cg.setStrokeColor(UIColor.black.cgColor)
+            cg.setLineWidth(4)
+            cg.stroke(CGRect(x: x0 - 6, y: y0 - 6, width: 8 * S + 12, height: 8 * S + 12))
+            for row in 0..<8 {
+                for col in 0..<8 where (row + col) % 2 == 1 {
+                    let r = CGRect(x: x0 + Double(col) * S, y: y0 + Double(row) * S, width: S, height: S)
+                    cg.saveGState()
+                    cg.clip(to: r)
+                    cg.setLineWidth(1.6)
+                    var t = -S
+                    while t < S {
+                        cg.move(to: CGPoint(x: r.minX + t, y: r.maxY))
+                        cg.addLine(to: CGPoint(x: r.minX + t + S, y: r.minY))
+                        t += 5
+                    }
+                    cg.strokePath()
+                    cg.restoreGState()
+                }
+            }
+            let pieceFont = UIFont(name: font, size: S * 1.15) ?? .systemFont(ofSize: S * 1.15)
+            for sq in 0..<64 {
+                guard let piece = position[sq] else { continue }
+                let center = CGPoint(x: x0 + (Double(sq.file) + 0.5) * S, y: y0 + (7.5 - Double(sq.rank)) * S)
+                func draw(_ glyph: String, _ color: UIColor) {
+                    let s = NSAttributedString(string: glyph, attributes: [.font: pieceFont, .foregroundColor: color])
+                    let b = s.size()
+                    s.draw(at: CGPoint(x: center.x - b.width / 2, y: center.y - b.height / 2))
+                }
+                if piece.color == .white {
+                    draw(piece.solidGlyph, .white)
+                    draw(piece.outlineGlyph, .black)
+                } else {
+                    draw(piece.solidGlyph, .black)
+                }
+            }
+        }
+    }
+
     /// The Opera Game as a book prints it, in two columns, for -demoScan.
     static func page() -> UIImage {
         let size = CGSize(width: 1200, height: 900)

@@ -9,6 +9,8 @@ struct BoardView: View {
     let bestMove: (from: Square, to: Square)?
     /// The move that led to this position, tinted.
     var lastMove: (from: Square, to: Square)? = nil
+    /// Squares to draw attention to, outlined: a diagram's doubtful squares.
+    var marked: Set<Square> = []
     let onTap: (Square) -> Void
 
     /// The from and to squares of a long-algebraic move.
@@ -74,6 +76,11 @@ struct BoardView: View {
                 context.fill(Path(rect), with: .color(.yellow.opacity(0.55)))
             }
             drawCoordinates(for: sq, in: rect, isLight: isLight, context: &context, cell: cell)
+        }
+        for sq in marked {
+            let rect = CGRect(origin: origin(of: sq, cell: cell), size: CGSize(width: cell, height: cell))
+            context.stroke(Path(rect.insetBy(dx: cell * 0.05, dy: cell * 0.05)), with: .color(.orange),
+                           lineWidth: max(2, cell * 0.08))
         }
         for sq in 0..<64 {
             guard let piece = position[sq] else { continue }

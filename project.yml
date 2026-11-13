@@ -107,7 +107,7 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.board-games
-        INFOPLIST_KEY_NSCameraUsageDescription: "The camera is used to scan printed chess games, which are read on the phone."
+        INFOPLIST_KEY_NSCameraUsageDescription: "The camera is used to read printed chess games and diagrams, on the phone."
         MARKETING_VERSION: 0.1.0
         CURRENT_PROJECT_VERSION: 1
         ENABLE_PREVIEWS: YES

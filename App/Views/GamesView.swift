@@ -11,6 +11,7 @@ struct GamesView: View {
     @State private var editorText: String?
     @State private var showingImporter = false
     @State private var showingScanner = false
+    @State private var showingCamera = false
     @State private var showingPhotoPicker = false
     @State private var photoItem: PhotosPickerItem?
     @State private var showingSettings = false
@@ -67,6 +68,12 @@ struct GamesView: View {
                 DocumentScanner { pages in Task { await read(images: pages, source: "Scanned Page") } }
                     .ignoresSafeArea()
             }
+            // The plain camera: the scanner hunts for the largest rectangle and stretches it
+            // flat, which on a screen (window, panels, boards) is often the wrong one.
+            .fullScreenCover(isPresented: $showingCamera) {
+                CameraPicker { photo in Task { await read(images: [photo], source: "Photo") } }
+                    .ignoresSafeArea()
+            }
             .photosPicker(isPresented: $showingPhotoPicker, selection: $photoItem, matching: .images)
             .onChange(of: photoItem) { loadPhoto() }
             #if DEBUG
@@ -93,11 +100,14 @@ struct GamesView: View {
         ContentUnavailableView {
             Label("No Game", systemImage: "list.number")
         } description: {
-            Text("Scan a printed game, or paste or open one in PGN. Every move is checked by the engine and marked as an inaccuracy, mistake or blunder, with the better line.")
+            Text("Scan or photograph a printed game, or paste or open one in PGN. Every move is checked by the engine and marked as an inaccuracy, mistake or blunder, with the better line.")
         } actions: {
             if DocumentScanner.isSupported {
                 Button("Scan with Camera", systemImage: "doc.viewfinder") { showingScanner = true }
                     .buttonStyle(.borderedProminent)
+            }
+            if CameraPicker.isAvailable {
+                Button("Take Photo", systemImage: "camera") { showingCamera = true }
             }
             pasteButton
             Button("Choose Photo", systemImage: "photo") { showingPhotoPicker = true }
@@ -151,6 +161,9 @@ struct GamesView: View {
             Menu("Import", systemImage: "plus") {
                 if DocumentScanner.isSupported {
                     Button("Scan with Camera…", systemImage: "doc.viewfinder") { showingScanner = true }
+                }
+                if CameraPicker.isAvailable {
+                    Button("Take Photo…", systemImage: "camera") { showingCamera = true }
                 }
                 Button("Choose Photo…", systemImage: "photo") { showingPhotoPicker = true }
                 Button("Open PGN File…", systemImage: "folder") { showingImporter = true }

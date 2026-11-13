@@ -23,6 +23,7 @@
 		3C34AF8D8831960C10264872 /* ModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 399FFF7E25C64F61C71F4B79 /* ModelTests.swift */; };
 		3C538FDFF03E69D1DDF22B8B /* PositionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDA0E551B88A76B7230E6F0 /* PositionView.swift */; };
 		403B665823A1D0D0D0313C25 /* board.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4AA403DF2979A674F2A2D2E4 /* board.cpp */; };
+		408F8A9719FA138F737EED74 /* SquareClassifier.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = D51F90CE1C91D862FB1B2F17 /* SquareClassifier.mlpackage */; };
 		42FFF28D86E7A600905070CE /* engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08427A9FB44AF6D3464A762F /* engine.cpp */; };
 		48A599668058774E561642B5 /* PGN.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3C7A37A73525DC20AD352E /* PGN.swift */; };
 		4B3F41E7EAF691A18BAF71E7 /* curl.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5DD37FDE9C97564607612516 /* curl.h */; };
@@ -32,6 +33,7 @@
 		6CAF7EBAF3C95EB9C8C3784C /* zobrist-hash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FA7283F91278E9A71A65EAD7 /* zobrist-hash.cpp */; };
 		70D42E28624C02D969C192F5 /* move.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09F217E4D6E44E0964BEC200 /* move.cpp */; };
 		734F8D40D10A469C4FD8EBEF /* nnue_misc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4E61EAEF664D3F434162B8B2 /* nnue_misc.cpp */; };
+		7654E2D5E15397B460BF29B0 /* DiagramTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C924740262EF9F8CD2A0B2CB /* DiagramTests.swift */; };
 		7A543B9383DA9777F0B115D4 /* ReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19480899BFC0B6FF2F0F8AD /* ReaderTests.swift */; };
 		7DE6F78C72D719A37673DD8E /* AnalysisModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F878ED6A8E6E752EDAD87086 /* AnalysisModel.swift */; };
 		826287EF428558A860B57F30 /* CreaticaBridge.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00772461BCB5F236E5DAF968 /* CreaticaBridge.h */; };
@@ -40,10 +42,12 @@
 		8463900393599AAC508679C1 /* misc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 057FE249B4D3015DEF6DD201 /* misc.cpp */; };
 		8D513694FCE7A01B7C84C6CC /* tag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 30BF14BC2779C6A82D4C08AB /* tag.cpp */; };
 		9809820C37327967A3ED0D87 /* creatica_ab.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6BC2BDA91F82B40D73CB1259 /* creatica_ab.cpp */; settings = {COMPILER_FLAGS = "-Dmain=creatica_ab_main"; }; };
+		984D32861B69A9113C3EEF56 /* DiagramViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A28B9FA87E8CF9EA119137 /* DiagramViews.swift */; };
 		A2E342B0BE9B027412011844 /* CreaticaBridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B71C9FDEFE6AB1083A88B40 /* CreaticaBridge.cpp */; };
 		B1AFC3477FA84E66B5F52D69 /* bitboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CCCEA10B875203814199D1 /* bitboard.cpp */; };
 		BD880E9A5CE225577BF90712 /* UCI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E598A51DF41120BB6854AA8 /* UCI.swift */; };
 		C7A5F5291319D8F2B69EB0E3 /* memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FC28D3737B503C46FC565E7E /* memory.cpp */; };
+		D0ECAC0840F65050A6F8F6AA /* DiagramReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D60DF988EE633953CBC5E07A /* DiagramReader.swift */; };
 		D6EB28DE7DA01DB3609E0828 /* libCreaticaEngine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6885B39AB568914F650011CF /* libCreaticaEngine.a */; };
 		D955531D923915BD811DDEE1 /* GameAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = B54BE0E3723719286D4D4895 /* GameAnalysis.swift */; };
 		DC910412E6FF2F4485F7E2C8 /* nnue_accumulator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CC9539CE426A21C361490A5D /* nnue_accumulator.cpp */; };
@@ -117,6 +121,7 @@
 		5DD37FDE9C97564607612516 /* curl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = curl.h; sourceTree = "<group>"; };
 		603DE39D8264A45BA4300906 /* uci_frontend.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = uci_frontend.cpp; sourceTree = "<group>"; };
 		62E0B821B45003A75ED77C5A /* EngineService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineService.swift; sourceTree = "<group>"; };
+		64A28B9FA87E8CF9EA119137 /* DiagramViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagramViews.swift; sourceTree = "<group>"; };
 		6885B39AB568914F650011CF /* libCreaticaEngine.a */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = archive.ar; path = libCreaticaEngine.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		6BC2BDA91F82B40D73CB1259 /* creatica_ab.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = creatica_ab.cpp; sourceTree = "<group>"; };
 		6C2689E81EF1359916F3CF20 /* ScanViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanViews.swift; sourceTree = "<group>"; };
@@ -133,10 +138,13 @@
 		A37E7384845811442E28C349 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 		AA9D22697E2F15CF1536FD20 /* TextRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextRecognizer.swift; sourceTree = "<group>"; };
 		B54BE0E3723719286D4D4895 /* GameAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameAnalysis.swift; sourceTree = "<group>"; };
+		C924740262EF9F8CD2A0B2CB /* DiagramTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagramTests.swift; sourceTree = "<group>"; };
 		CC9539CE426A21C361490A5D /* nnue_accumulator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = nnue_accumulator.cpp; sourceTree = "<group>"; };
 		CD3C7A37A73525DC20AD352E /* PGN.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PGN.swift; sourceTree = "<group>"; };
 		D02C74C3769C8F05B383233F /* GameTextReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTextReader.swift; sourceTree = "<group>"; };
 		D19480899BFC0B6FF2F0F8AD /* ReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderTests.swift; sourceTree = "<group>"; };
+		D51F90CE1C91D862FB1B2F17 /* SquareClassifier.mlpackage */ = {isa = PBXFileReference; path = SquareClassifier.mlpackage; sourceTree = "<group>"; };
+		D60DF988EE633953CBC5E07A /* DiagramReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagramReader.swift; sourceTree = "<group>"; };
 		E2B6859D7F126D65A7671C54 /* Annotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Annotation.swift; sourceTree = "<group>"; };
 		EB25E0683A83F5BC8E6BE5C1 /* Position.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Position.swift; sourceTree = "<group>"; };
 		ECDA0E551B88A76B7230E6F0 /* PositionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionView.swift; sourceTree = "<group>"; };
@@ -240,6 +248,7 @@
 			isa = PBXGroup;
 			children = (
 				04A600A175630710223A2D56 /* ClipboardReader.swift */,
+				D60DF988EE633953CBC5E07A /* DiagramReader.swift */,
 				62E0B821B45003A75ED77C5A /* EngineService.swift */,
 				AA9D22697E2F15CF1536FD20 /* TextRecognizer.swift */,
 			);
@@ -249,6 +258,7 @@
 		7572E8F6D7DF18242FE1CED2 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				C924740262EF9F8CD2A0B2CB /* DiagramTests.swift */,
 				473A7A87B5ACA89FE7833111 /* GameTests.swift */,
 				399FFF7E25C64F61C71F4B79 /* ModelTests.swift */,
 				D19480899BFC0B6FF2F0F8AD /* ReaderTests.swift */,
@@ -261,6 +271,7 @@
 			children = (
 				19DF7BFE3CBEF8A44B4F0255 /* AnalysisPanel.swift */,
 				45DB6B0468CE2FA7192274F5 /* BoardView.swift */,
+				64A28B9FA87E8CF9EA119137 /* DiagramViews.swift */,
 				18EDCB6DA938D6233B30F114 /* GamesView.swift */,
 				A37E7384845811442E28C349 /* GameView.swift */,
 				1968D526A92E3C2D0152064F /* PiecePalette.swift */,
@@ -278,6 +289,7 @@
 			children = (
 				714A16100CA4F449E4628C21 /* Engine */,
 				509D0920F4A6876ED398672E /* Model */,
+				ED401ADFECBB712701A64662 /* Resources */,
 				AC0EB245B41DE53EF4BB4942 /* Views */,
 				8B4CAC4B6E14CE12D491C1E4 /* ChessAnalyzerApp.swift */,
 			);
@@ -334,6 +346,14 @@
 				6885B39AB568914F650011CF /* libCreaticaEngine.a */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		ED401ADFECBB712701A64662 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D51F90CE1C91D862FB1B2F17 /* SquareClassifier.mlpackage */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -443,6 +463,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7654E2D5E15397B460BF29B0 /* DiagramTests.swift in Sources */,
 				32AFC48D2373EE60205CA6AA /* GameTests.swift in Sources */,
 				3C34AF8D8831960C10264872 /* ModelTests.swift in Sources */,
 				7A543B9383DA9777F0B115D4 /* ReaderTests.swift in Sources */,
@@ -487,6 +508,8 @@
 				F17EC671287F08CF2D5DB74F /* BoardView.swift in Sources */,
 				278D010EC4B985930552AE18 /* ChessAnalyzerApp.swift in Sources */,
 				8408D22D837570149B4062D8 /* ClipboardReader.swift in Sources */,
+				D0ECAC0840F65050A6F8F6AA /* DiagramReader.swift in Sources */,
+				984D32861B69A9113C3EEF56 /* DiagramViews.swift in Sources */,
 				E3DC2172CB0AE648DA75DEC7 /* EngineService.swift in Sources */,
 				D955531D923915BD811DDEE1 /* GameAnalysis.swift in Sources */,
 				E24CB00E893D301928EFCF21 /* GameAnalysisModel.swift in Sources */,
@@ -502,6 +525,7 @@
 				28B5D73D26131CEFF6F29C3A /* RootView.swift in Sources */,
 				E3EF37D10EE85F593CB4ABE2 /* ScanViews.swift in Sources */,
 				2C8AC1BEA4DC6B489449A489 /* SettingsView.swift in Sources */,
+				408F8A9719FA138F737EED74 /* SquareClassifier.mlpackage in Sources */,
 				244F9B36ED991D916CC18A1D /* TextRecognizer.swift in Sources */,
 				BD880E9A5CE225577BF90712 /* UCI.swift in Sources */,
 			);
@@ -639,7 +663,7 @@
 				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Chess Analyzer";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.board-games";
-				INFOPLIST_KEY_NSCameraUsageDescription = "The camera is used to scan printed chess games, which are read on the phone.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "The camera is used to read printed chess games and diagrams, on the phone.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -771,7 +795,7 @@
 				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Chess Analyzer";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.board-games";
-				INFOPLIST_KEY_NSCameraUsageDescription = "The camera is used to scan printed chess games, which are read on the phone.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "The camera is used to read printed chess games and diagrams, on the phone.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
