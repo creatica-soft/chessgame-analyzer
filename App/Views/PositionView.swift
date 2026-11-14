@@ -16,11 +16,14 @@ struct PositionView: View {
     @State private var showingPicture = false
     /// The board's corners being set by hand.
     @State private var corners: CornerJob?
+    /// What the camera or the photo picker is reading: a diagram or a real board.
+    @State private var photoKind = DiagramReader.Reading.Kind.diagram
 
     private struct CornerJob: Identifiable {
         let id = UUID()
         let photo: CGImage
         let quad: DiagramReader.Quad
+        let kind: DiagramReader.Reading.Kind
         var note: String? = nil
     }
 
@@ -30,7 +33,7 @@ struct PositionView: View {
                 VStack(spacing: 12) {
                     if let reading = model.diagram {
                         DiagramCheckBar(model: model, reading: reading, showingPicture: $showingPicture) {
-                            if let photo = reading.photo { corners = CornerJob(photo: photo, quad: reading.quad) }
+                            if let photo = reading.photo { corners = CornerJob(photo: photo, quad: reading.quad, kind: reading.kind) }
                         }
                     }
                     EvalBar(whiteShare: model.whiteScore?.whiteShare)
@@ -63,29 +66,29 @@ struct PositionView: View {
             .sheet(isPresented: $showingSettings) { SettingsView() }
             .fullScreenCover(isPresented: $showingScanner) {
                 DocumentScanner { pages in
-                    if let page = pages.first { Task { await readDiagram(page) } }
+                    if let page = pages.first { Task { await read(page, .diagram) } }
                 }
                 .ignoresSafeArea()
             }
             .fullScreenCover(item: $corners) { job in
                 CornerEditor(photo: job.photo, quad: job.quad, note: job.note) { quad in
-                    Task { await readCorners(job.photo, quad) }
+                    Task { await readCorners(job.photo, quad, job.kind) }
                 }
             }
             .fullScreenCover(isPresented: $showingCamera) {
-                CameraPicker { photo in Task { await readDiagram(photo) } }
+                CameraPicker { photo in Task { await read(photo, photoKind) } }
                     .ignoresSafeArea()
             }
             .photosPicker(isPresented: $showingPhotoPicker, selection: $photoItem, matching: .images)
             .onChange(of: photoItem) { loadPhoto() }
             .overlay {
                 if isReadingDiagram {
-                    ProgressView("Reading the diagram…")
+                    ProgressView(photoKind == .board ? "Reading the board…" : "Reading the diagram…")
                         .padding(20)
                         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
                 }
             }
-            .alert("Couldn't Read the Diagram", isPresented: Binding(
+            .alert(photoKind == .board ? "Couldn't Read the Board" : "Couldn't Read the Diagram", isPresented: Binding(
                 get: { diagramError != nil }, set: { if !$0 { diagramError = nil } }
             )) {
                 Button("OK", role: .cancel) {}
@@ -95,21 +98,25 @@ struct PositionView: View {
             #if DEBUG
             .task {
                 // -demoDiagram: reads a rendered diagram onto the board for checking.
-                // -demoDiagramFile PATH: reads that picture instead.
+                // -demoDiagramFile PATH / -demoBoardFile PATH: reads that picture instead, as a
+                // diagram or as a photo of a real board.
                 let args = ProcessInfo.processInfo.arguments
                 // A path not starting with / is in the app's Documents (as Imports/<stamp>/page1.jpg).
                 let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].path
-                if let i = args.firstIndex(of: "-demoDiagramFile"), i + 1 < args.count,
-                   let image = UIImage(contentsOfFile: args[i + 1].hasPrefix("/") ? args[i + 1] : documents + "/" + args[i + 1]) {
-                    await readDiagram(image)
+                for (flag, kind) in [("-demoDiagramFile", DiagramReader.Reading.Kind.diagram), ("-demoBoardFile", .board)] {
+                    guard let i = args.firstIndex(of: flag), i + 1 < args.count,
+                          let image = UIImage(contentsOfFile: args[i + 1].hasPrefix("/") ? args[i + 1] : documents + "/" + args[i + 1])
+                    else { continue }
+                    photoKind = kind
+                    await read(image, kind)
                     showingPicture = args.contains("-demoPicture")
                     if args.contains("-demoCorners"), let r = model.diagram, let photo = r.photo {
-                        corners = CornerJob(photo: photo, quad: r.quad)
+                        corners = CornerJob(photo: photo, quad: r.quad, kind: r.kind)
                     }
                     return
                 }
                 guard args.contains("-demoDiagram") else { return }
-                await readDiagram(DemoGame.diagram())
+                await read(DemoGame.diagram(), .diagram)
             }
             #endif
         }
@@ -123,33 +130,37 @@ struct PositionView: View {
                 diagramError = "The photo could not be loaded."
                 return
             }
-            await readDiagram(image)
+            await read(image, photoKind)
         }
     }
 
-    private func readDiagram(_ image: UIImage) async {
+    /// Reads a diagram, or a photo of a real board, onto the board for checking.
+    private func read(_ image: UIImage, _ kind: DiagramReader.Reading.Kind) async {
         isReadingDiagram = true
         defer { isReadingDiagram = false }
-        ImportLog.save(text: "", images: [image], source: "diagram")
+        ImportLog.save(text: "", images: [image], source: kind == .board ? "board" : "diagram")
         do {
-            let reading = try await DiagramReader.read(image)
+            let reading = kind == .board ? try await BoardReader.read(image) : try await DiagramReader.read(image)
             showingPicture = false
             model.loadDiagram(reading)
         } catch DiagramReader.ReadError.noBoard {
             // Not found: the corners can still be set by hand.
             guard let photo = DiagramReader.upright(image) else { return }
-            corners = CornerJob(photo: photo, quad: DiagramReader.defaultCorners(in: photo),
-                                note: "No board was found. Drag the corners onto the board's corners, so the grid lines fall between the squares.")
+            corners = CornerJob(photo: photo, quad: DiagramReader.defaultCorners(in: photo), kind: kind,
+                                note: kind == .board
+                                    ? "No board was found. Drag the corners onto the corners of the playing area (a8, h8, h1, a1 from White's side), so the grid lines fall between the squares."
+                                    : "No board was found. Drag the corners onto the board's corners, so the grid lines fall between the squares.")
         } catch {
             diagramError = error.localizedDescription
         }
     }
 
-    private func readCorners(_ photo: CGImage, _ quad: DiagramReader.Quad) async {
+    private func readCorners(_ photo: CGImage, _ quad: DiagramReader.Quad, _ kind: DiagramReader.Reading.Kind) async {
         isReadingDiagram = true
         defer { isReadingDiagram = false }
         do {
-            let reading = try await DiagramReader.read(photo, corners: quad)
+            let reading = kind == .board ? try await BoardReader.read(photo, corners: quad)
+                                         : try await DiagramReader.read(photo, corners: quad)
             showingPicture = false
             model.loadDiagram(reading)
         } catch {
@@ -179,17 +190,23 @@ struct PositionView: View {
             Button("Flip Board", systemImage: "arrow.up.arrow.down") { model.flipped.toggle() }
             engineButton
             Menu("Position", systemImage: "ellipsis.circle") {
+                Section("Read a Real Board") {
+                    if CameraPicker.isAvailable {
+                        Button("Take Photo…", systemImage: "camera") { photoKind = .board; showingCamera = true }
+                    }
+                    Button("Choose Photo…", systemImage: "photo") { photoKind = .board; showingPhotoPicker = true }
+                }
                 Section("Read a Diagram") {
                     if CameraPicker.isAvailable {
-                        Button("Take Photo…", systemImage: "camera") { showingCamera = true }
+                        Button("Take Photo…", systemImage: "camera") { photoKind = .diagram; showingCamera = true }
                     }
                     if DocumentScanner.isSupported {
                         // The scanner lets the corners be dragged onto the board; its automatic
                         // shutter (on by default, switched off in its own controls) can catch a
                         // skewed frame.
-                        Button("Scan and Crop…", systemImage: "camera.viewfinder") { showingScanner = true }
+                        Button("Scan and Crop…", systemImage: "camera.viewfinder") { photoKind = .diagram; showingScanner = true }
                     }
-                    Button("Choose Photo…", systemImage: "photo") { showingPhotoPicker = true }
+                    Button("Choose Photo…", systemImage: "photo") { photoKind = .diagram; showingPhotoPicker = true }
                 }
                 Button("Starting Position", systemImage: "arrow.counterclockwise") { model.load(.start) }
                 Button("Clear Board", systemImage: "trash") { model.load(.empty) }

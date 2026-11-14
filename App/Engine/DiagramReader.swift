@@ -66,6 +66,10 @@ enum DiagramReader {
         var flipped: Bool
         /// The whole picture, upright, that `quad` is in: for setting the corners by hand.
         var photo: CGImage? = nil
+        /// A printed or screen diagram, or a photo of a real board (see `BoardReader`).
+        var kind: Kind = .diagram
+
+        enum Kind: Sendable { case diagram, board }
 
         /// Squares the classifier was unsure of, for the user to check.
         var doubtful: [Square] { uncertain.indices.filter { uncertain[$0] } }
@@ -610,6 +614,14 @@ enum DiagramReader {
             let sum = combined.reduce(0, +)
             for i in group { p[i] = combined.map { $0 / sum } }
         }
+        return constrain(p)
+    }
+
+    /// Corrects any reading of a board, printed or real, with the rules of the position: no pawn
+    /// stands on the first or last rank; each side has exactly one king. Rows of 8 squares, the
+    /// first and last being the edge ranks (either side at the bottom).
+    static func constrain(_ probabilities: [[Double]]) -> [[Double]] {
+        var p = probabilities
         // No pawns on the top or bottom row, whichever side is at the bottom.
         for i in 0..<64 where i / 8 == 0 || i / 8 == 7 {
             for k in classes.indices where classes[k]?.kind == .pawn { p[i][k] = 0 }

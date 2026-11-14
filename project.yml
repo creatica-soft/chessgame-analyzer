@@ -112,6 +112,9 @@ targets:
         CURRENT_PROJECT_VERSION: 1
         ENABLE_PREVIEWS: YES
       configs:
+        Debug:
+          # The picture readers are tight loops: unoptimised, reading a board photo takes ~10 s.
+          SWIFT_OPTIMIZATION_LEVEL: "-O"
         Release:
           LLVM_LTO: YES
 

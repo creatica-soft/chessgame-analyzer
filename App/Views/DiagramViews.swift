@@ -58,7 +58,8 @@ struct DiagramCheckBar: View {
         let left = model.doubtful.count
         Group {
             if reading.doubtful.count >= 8 && left == reading.doubtful.count {
-                Label("Many squares uncertain: is the whole board in the picture?", systemImage: "viewfinder")
+                Label(reading.kind == .board ? "Many squares uncertain: a photo from White's side, from a little above, reads best."
+                                             : "Many squares uncertain: is the whole board in the picture?", systemImage: "viewfinder")
                     .foregroundStyle(.orange)
             } else if left > 0 {
                 Label("\(left) square\(left == 1 ? "" : "s") to check, outlined", systemImage: "questionmark.circle")
