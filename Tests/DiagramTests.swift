@@ -55,9 +55,19 @@ struct DiagramPositionTests {
     static func reading(_ fen: String) throws -> DiagramReader.Reading {
         let position = try Position(fen: fen)
         let blank = UIGraphicsImageRenderer(size: CGSize(width: 8, height: 8)).image { _ in }.cgImage!
-        return DiagramReader.Reading(pieces: (0..<64).map { position[$0] }, confidence: Array(repeating: 1, count: 64),
+        return DiagramReader.Reading(pieces: (0..<64).map { position[$0] }, uncertain: Array(repeating: false, count: 64),
                                      board: blank, quad: .init(topLeft: .zero, topRight: .zero, bottomRight: .zero, bottomLeft: .zero),
                                      flipped: false)
+    }
+
+    @Test func cornersAreNamedByWhereTheyAre() {
+        let tl = CGPoint(x: 10, y: 12), tr = CGPoint(x: 110, y: 8), br = CGPoint(x: 115, y: 105), bl = CGPoint(x: 6, y: 100)
+        let right = DiagramReader.Quad(topLeft: tl, topRight: tr, bottomRight: br, bottomLeft: bl)
+        // Left and right swapped (the board would read mirrored), a crossed outline, and turned.
+        let mirrored = DiagramReader.Quad(topLeft: tr, topRight: tl, bottomRight: bl, bottomLeft: br)
+        let crossed = DiagramReader.Quad(topLeft: tl, topRight: br, bottomRight: tr, bottomLeft: bl)
+        let turned = DiagramReader.Quad(topLeft: br, topRight: bl, bottomRight: tl, bottomLeft: tr)
+        for q in [right, mirrored, crossed, turned] { #expect(q.ordered == right) }
     }
 
     @Test func castlingOnlyWhereKingAndRookAreHome() throws {
@@ -119,7 +129,7 @@ struct DiagramRefineTests {
         p[60] = row
         let r = DiagramReader.refine(p, cells: Self.distinctCells())
         #expect(Self.best(r[60]) == Piece(.white, .king))
-        #expect(r[60].max()! < 0.8)   // shown as doubtful
+        #expect(DiagramReader.isDoubtful(r[60]))   // shown as doubtful
     }
 
     @Test func aSecondKingIsDemoted() {

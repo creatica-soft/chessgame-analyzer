@@ -16,7 +16,7 @@ empty, or one of the twelve pieces. It is trained only on synthetic diagrams mad
        python3 fontglyphs.py fonts-ttf fontglyphs
 
 2. Squares: `gen.py` draws boards typeset in the diagram fonts, and from the piece images in book
-   styles (hatched, dotted or grey dark squares, frames) and screen styles (with last-move highlights), degrades them like a print or photo (blur, noise,
+   styles (dark squares hatched at any angle and spacing, cross-hatched, drawn as nested squares, wavy, stippled, dotted or grey; frames) and screen styles (with last-move highlights), degrades them like a print or photo (blur, noise,
    JPEG, uneven light, ink spread; moiré and glare as in photos of a screen), warps
    them from slightly wrong corners as the app would, and cuts the 64 squares. The geometry
    constants must match `DiagramReader.Geometry`.
@@ -31,4 +31,7 @@ empty, or one of the twelve pieces. It is trained only on synthetic diagrams mad
 
        python3 train.py train.npz squarenet.pt 8
        python3 train.py more.npz squarenet2.pt 4 --init=squarenet.pt   # fine-tune on new damage
+
+   The shipped model: trained on all styles (8 epochs), fine-tuned on screen photos (moiré, glare,
+   highlights; 4 epochs), then on the dark-square fills above (8000 boards, 4 epochs).
        python3 export.py squarenet.pt ../../App/Resources/SquareClassifier.mlpackage

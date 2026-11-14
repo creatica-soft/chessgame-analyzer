@@ -62,6 +62,38 @@ def render_font(rng, tiles):
     corners = [(pad, pad), (pad + 8 * S, pad), (pad + 8 * S, pad + 8 * S), (pad, pad + 8 * S)]
     return img, corners, labels, S
 
+def dark_fill(rng, S, xx, yy):
+    """Where the ink goes on a dark square, as books draw them: a mask over the board's pixels.
+    Hatching at any angle and spacing, cross-hatching, nested squares, wavy lines, stipple."""
+    lx, ly = xx % S, yy % S                      # within each square
+    kind = rng.choices(['hatch', 'cross', 'nested', 'wavy', 'stipple', 'lines'], [40, 10, 14, 12, 8, 16])[0]
+    spacing = rng.randint(2, max(3, S // rng.choice([3, 4, 6, 8])))
+    width = max(1, int(round(spacing * rng.uniform(0.25, 0.6))))
+    if kind in ('hatch', 'cross', 'lines'):
+        angles = [rng.choice([45, -45, 30, 60, -30, -60])] if kind == 'hatch' else \
+                 [rng.choice([0, 90])] if kind == 'lines' else [45, -45] if rng.random() < 0.6 else [0, 90]
+        mask = np.zeros_like(xx, dtype=bool)
+        for a in angles:
+            t = np.radians(a)
+            u = xx * np.cos(t) + yy * np.sin(t)
+            mask |= (u % spacing) < width
+        return mask
+    if kind == 'nested':
+        # Squares inside squares, each ring a line: as some old diagrams draw the dark squares.
+        edge = np.minimum(np.minimum(lx, ly), np.minimum(S - 1 - lx, S - 1 - ly))
+        mask = (edge % spacing) < width
+        if rng.random() < 0.5:
+            mask &= edge < S * rng.uniform(0.3, 0.5)   # an empty middle
+        return mask
+    if kind == 'wavy':
+        period = S * rng.uniform(0.3, 1.0)
+        amp = spacing * rng.uniform(0.3, 1.2)
+        u = xx + yy * rng.choice([1, -1])
+        v = xx - yy * rng.choice([1, -1])
+        return ((u + amp * np.sin(2 * np.pi * v / period)) % spacing) < width
+    # Stipple: ink dots at random.
+    return np.random.default_rng(rng.randrange(1 << 30)).random(xx.shape) < rng.uniform(0.2, 0.6)
+
 def board_colors(rng):
     """(light, dark, pattern): pattern is 'solid', 'hatch', 'dots' or 'screen'."""
     r = rng.random()
@@ -94,11 +126,7 @@ def render(rng, sets):
     board = np.empty((8 * S, 8 * S, 3), np.uint8)
     board[:] = light
     if pattern == 'hatch':
-        spacing = rng.randint(2, max(3, S // 6))
-        width = max(1, int(spacing * rng.uniform(0.3, 0.6)))
-        direction = rng.choice([1, -1])
-        lines = ((xx + direction * yy) % spacing) < width
-        board[is_dark & lines] = dark
+        board[is_dark & dark_fill(rng, S, xx, yy)] = dark
     elif pattern == 'dots':
         spacing = rng.randint(2, 4)
         dots = ((xx % spacing) == 0) & ((yy % spacing) == 0) | (rng.random() < 0.5) & (((xx + yy) % spacing) == 0)

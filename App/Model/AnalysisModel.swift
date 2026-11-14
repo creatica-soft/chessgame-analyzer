@@ -34,6 +34,16 @@ final class AnalysisModel {
     private(set) var invalidReason: String?
     private(set) var terminal: EngineService.Terminal?
     private var undoStack: [Position] = []
+    /// The diagram the board was read from, while its reading is being checked.
+    private(set) var diagram: DiagramReader.Reading?
+    /// The diagram's squares still to check, outlined on the board. A square leaves the set when
+    /// it is edited.
+    private(set) var doubtful: Set<Square> = []
+    /// The undo depth at which the diagram was loaded: undoing past it leaves the diagram.
+    private var diagramDepth = 0
+    /// A diagram's reading is on the board: analysis waits until the user has checked it and
+    /// said so (Done or the engine button), even when every square was read with confidence.
+    private(set) var awaitingCheck = false
     private var pending: Task<Void, Never>?
 
     init(engine: EngineService) {
@@ -57,14 +67,64 @@ final class AnalysisModel {
                 selectedSquare = nil
                 guard from != square, let piece = position[from] else { return }
                 change { $0.edit { $0[square] = piece; $0[from] = nil } }
+                checked([from, square])
             } else if position[square] != nil {
                 selectedSquare = square
             }
         case .place(let piece):
             change { $0.edit { $0[square] = $0[square] == piece ? nil : piece } }
+            checked([square])
         case .erase:
             guard position[square] != nil else { return }
             change { $0.edit { $0[square] = nil } }
+            checked([square])
+        }
+    }
+
+    /// Squares the user has set by hand need no more checking.
+    private func checked(_ squares: [Square]) {
+        doubtful.subtract(squares)
+    }
+
+    // MARK: - A diagram read from a picture
+
+    /// Puts a diagram's reading on the board for checking, with its doubtful squares outlined.
+    /// Whose move it is a diagram doesn't show: when only one side gives a legal position (the
+    /// other is in check), that one, otherwise White.
+    func loadDiagram(_ reading: DiagramReader.Reading) {
+        let legal = [PieceColor.white, .black].filter {
+            EngineService.validationError(fen: reading.position(sideToMove: $0).fen) == nil
+        }
+        selectedSquare = nil
+        change { $0 = reading.position(sideToMove: legal.count == 1 ? legal[0] : .white) }
+        diagram = reading
+        doubtful = Set(reading.doubtful)
+        awaitingCheck = true
+        #if DEBUG
+        fputs("diagram read: \(position.fen) doubtful \(reading.doubtful.map(\.algebraic))\n", stderr)
+        #endif
+        diagramDepth = undoStack.count
+        // The board as printed: from Black's side when the diagram was.
+        flipped = reading.flipped
+    }
+
+    /// The diagram read the other way up: it was printed from the other side.
+    func turnDiagramRound() {
+        guard var reading = diagram else { return }
+        reading.turnRound()
+        let depth = diagramDepth
+        loadDiagram(reading)
+        diagramDepth = depth
+    }
+
+    /// The reading has been checked: the outlines and the picture go, and analysis starts.
+    func closeDiagram() {
+        guard diagram != nil else { return }
+        diagram = nil
+        doubtful = []
+        if awaitingCheck {
+            awaitingCheck = false
+            scheduleAnalysis()
         }
     }
 
@@ -84,6 +144,7 @@ final class AnalysisModel {
 
     func load(_ newPosition: Position) {
         selectedSquare = nil
+        closeDiagram()
         change { $0 = newPosition }
     }
 
@@ -108,6 +169,7 @@ final class AnalysisModel {
         guard let previous = undoStack.popLast() else { return }
         selectedSquare = nil
         position = previous
+        if undoStack.count < diagramDepth { closeDiagram() }
         scheduleAnalysis()
     }
 
@@ -126,7 +188,11 @@ final class AnalysisModel {
     /// The engine button: stops a running search, or searches the board again, for longer if the
     /// last search of it finished.
     func toggleAnalysis() {
-        if isAnalyzing {
+        if awaitingCheck {
+            // Asking for analysis of a diagram being checked takes it as checked.
+            analysisEnabled = true
+            closeDiagram()
+        } else if isAnalyzing {
             analysisEnabled = false
             pending?.cancel()
             engine.stop(.position)
@@ -186,7 +252,9 @@ final class AnalysisModel {
         invalidReason = EngineService.validationError(fen: fen)
         terminal = invalidReason == nil ? EngineService.terminal(fen: fen) : nil
 
-        guard invalidReason == nil, terminal == nil, analysisEnabled, pauseReason == nil else {
+        // A diagram's reading waits until it has been checked: a misread position is not worth
+        // searching, and the legality shown meanwhile helps the checking.
+        guard invalidReason == nil, terminal == nil, analysisEnabled, pauseReason == nil, !awaitingCheck else {
             if invalidReason != nil || terminal != nil { engine.clear(.position) } else { engine.stop(.position) }
             return
         }

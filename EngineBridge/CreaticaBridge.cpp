@@ -17,6 +17,7 @@
 // the Xcode console still shows everything.
 #include "CreaticaBridge.h"
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -184,6 +185,17 @@ extern "C" int creatica_validate_fen(const char * fen, char * reason, int reason
         }
         if (bitCount(b.side[c] & b.pieceTypes[Pawn - 1]) > 8) {
             std::snprintf(msg, sizeof msg, "%s has more than 8 pawns", who);
+            write_reason(reason, reason_len, msg);
+            return 0;
+        }
+        // Each piece beyond the starting set was a pawn once (as libchess's is_legal checks in
+        // lichess_evals_bin_writer.cpp): a third knight with eight pawns still on the board is not
+        // a position any game can reach.
+        auto count = [&](PieceType t) { return bitCount(b.side[c] & b.pieceTypes[t - 1]); };
+        const int promoted = std::max(0, count(Knight) - 2) + std::max(0, count(Bishop) - 2)
+                           + std::max(0, count(Rook) - 2) + std::max(0, count(Queen) - 1);
+        if (count(Pawn) + promoted > 8) {
+            std::snprintf(msg, sizeof msg, "%s has more promoted pieces than missing pawns", who);
             write_reason(reason, reason_len, msg);
             return 0;
         }

@@ -34,6 +34,18 @@ enum DiagramReader {
                     y: (topLeft.y + topRight.y + bottomRight.y + bottomLeft.y) / 4)
         }
 
+        /// The same four points named by where they are: clockwise round their centre (on screen,
+        /// y down), starting from the one nearest the top left. Corners set by hand may have been
+        /// dragged past one another, which would read the board mirrored.
+        var ordered: Quad {
+            let c = center
+            let points = [topLeft, topRight, bottomRight, bottomLeft]
+                .sorted { atan2($0.y - c.y, $0.x - c.x) < atan2($1.y - c.y, $1.x - c.x) }
+            let first = points.indices.min { points[$0].x + points[$0].y < points[$1].x + points[$1].y }!
+            let p = (0..<4).map { points[(first + $0) % 4] }
+            return Quad(topLeft: p[0], topRight: p[1], bottomRight: p[2], bottomLeft: p[3])
+        }
+
         /// Scaled about its centre.
         func scaled(_ f: Double) -> Quad {
             let c = center
@@ -45,16 +57,31 @@ enum DiagramReader {
     struct Reading: @unchecked Sendable {
         /// libchess order: a1 = 0, h8 = 63.
         var pieces: [Piece?]
-        /// How sure the classifier was of each square, same order.
-        var confidence: [Double]
+        /// Whether the classifier was unsure of each square, same order.
+        var uncertain: [Bool]
         /// The straightened board as it was read, top row first, for comparing with the result.
         var board: CGImage
         var quad: Quad
         /// Black was at the bottom of the diagram; the pieces are already turned round.
         var flipped: Bool
+        /// The whole picture, upright, that `quad` is in: for setting the corners by hand.
+        var photo: CGImage? = nil
 
         /// Squares the classifier was unsure of, for the user to check.
-        var doubtful: [Square] { confidence.indices.filter { confidence[$0] < 0.8 } }
+        var doubtful: [Square] { uncertain.indices.filter { uncertain[$0] } }
+    }
+
+    /// Whether a square's reading needs checking: another reading is a real rival to the best, or
+    /// the best is under even odds. Not a low best alone: on photos of screens, an empty square
+    /// often comes out at 75% empty with the rest spread thinly over every piece, which is no
+    /// doubt about what it holds. (On synthetic boards this outlines a sixth fewer squares than
+    /// "best under 80%" and still catches 78% of the mistakes, against 82%.)
+    static func isDoubtful(_ p: [Double]) -> Bool {
+        var first = 0.0, second = 0.0
+        for v in p {
+            if v > first { second = first; first = v } else if v > second { second = v }
+        }
+        return first < 0.5 || second > 0.1 * first
     }
 
     enum ReadError: LocalizedError {
@@ -79,6 +106,20 @@ enum DiagramReader {
         return try await Task.detached(priority: .userInitiated) { try read(upright) }.value
     }
 
+    /// The board inside corners set by hand, in an upright picture.
+    static func read(_ image: CGImage, corners: Quad) async throws -> Reading {
+        let quad = corners.ordered
+        return try await Task.detached(priority: .userInitiated) { try read(image, quad: quad) }.value
+    }
+
+    /// Where the corners start when no board was found: a square in the middle of the picture.
+    static func defaultCorners(in image: CGImage) -> Quad {
+        let w = Double(image.width), h = Double(image.height), side = min(w, h) * 0.7
+        let x = (w - side) / 2, y = (h - side) / 2
+        return Quad(topLeft: CGPoint(x: x, y: y), topRight: CGPoint(x: x + side, y: y),
+                    bottomRight: CGPoint(x: x + side, y: y + side), bottomLeft: CGPoint(x: x, y: y + side))
+    }
+
     /// The whole reading, on an upright image.
     static func read(_ image: CGImage, quad given: Quad? = nil) throws -> Reading {
         let candidates = given.map { [$0] } ?? findBoards(in: image)
@@ -86,11 +127,11 @@ enum DiagramReader {
         var best: (board: Board, cells: MLMultiArray, probabilities: [[Double]], quad: Quad, score: Double)?
         // A cut is scored by how sure the classifier is of its squares and by how much it looks
         // like a board: light and dark squares alternating.
-        func consider(_ quads: [Quad]) throws {
+        func consider(_ quads: [Quad], fit: Bool = true) throws {
             for quad in quads {
                 // The rectangle found may be a frame or a panel around the board: fit the board's
                 // grid inside it, and keep the rectangle itself as a fallback.
-                let tries = given != nil ? [quad] : [fitGrid(image, quad), quad].compactMap { $0 }
+                let tries = given != nil || !fit ? [quad] : [fitGrid(image, quad), quad].compactMap { $0 }
                 for q in tries {
                     guard let board = straighten(image, q) else { continue }
                     let squares = cells(of: board)
@@ -110,8 +151,22 @@ enum DiagramReader {
         if given == nil, doubtful >= 4, let found = findCheckerboard(in: image) {
             try consider([found])
         }
+        // A box found by its pattern can be a whole square off: the light and dark squares carry
+        // on into a margin, or a row of coordinates is taken for a rank. Try it moved a square
+        // each way: the board itself reads best.
+        if given == nil, let found = best {
+            let h = Homography(found.quad)
+            let shifts = [(-1, 0), (1, 0), (0, -1), (0, 1)].map { (dx, dy) -> Quad in
+                let u = Double(dx) / 8, v = Double(dy) / 8
+                return Quad(topLeft: h.map(u, v), topRight: h.map(1 + u, v),
+                            bottomRight: h.map(1 + u, 1 + v), bottomLeft: h.map(u, 1 + v))
+            }
+            try consider(shifts, fit: false)
+        }
         guard let best else { throw ReadError.noBoard }
-        return assemble(refine(best.probabilities, cells: best.cells), board: best.board.image, quad: best.quad)
+        var reading = assemble(refine(best.probabilities, cells: best.cells), board: best.board.image, quad: best.quad)
+        reading.photo = image
+        return reading
     }
 
     // MARK: - Finding the board
@@ -179,6 +234,7 @@ enum DiagramReader {
         let width: Int, height: Int
         private var integral: [Double]
         private var light = [Double](repeating: 0, count: 32), dark = [Double](repeating: 0, count: 32)
+        var patchFrom = 0.08, patchTo = 0.26
 
         init(pixels: [UInt8], width: Int, height: Int) {
             self.width = width
@@ -198,7 +254,7 @@ enum DiagramReader {
 
         mutating func score(_ bx: Double, _ by: Double, _ size: Double) -> Double {
             let cell = size / 8
-            let p0 = cell * 0.08, p1 = cell * 0.26
+            let p0 = cell * patchFrom, p1 = cell * patchTo
             guard bx >= 0, by >= 0, bx + size <= Double(width), by + size <= Double(height), p1 - p0 >= 1 else { return 0 }
             let stride = width + 1
             var nl = 0, nd = 0
@@ -313,8 +369,11 @@ enum DiagramReader {
         }
     }
 
-    /// Light and dark squares must differ clearly for a box to be taken for a board.
-    static let boardLikeScore = 1.5
+    /// Light and dark squares must differ for a box to be taken for a board. Faintly: in a photo of
+    /// a screen, finely hatched dark squares come out barely darker than the light ones (about
+    /// 0.75 to 0.9), while pictures of text without a board stay under 0.6. Whichever boxes pass
+    /// are then compared by how they read (see `read`).
+    static let boardLikeScore = 0.7
 
     /// The board inside `quad`: the square box in it (straightened) that alternates most
     /// strongly. nil when nothing alternates, as on a board without shaded squares.
@@ -541,11 +600,15 @@ enum DiagramReader {
     /// no pawn stands on the first or last rank; each side has exactly one king.
     static func refine(_ probabilities: [[Double]], cells: MLMultiArray) -> [[Double]] {
         var p = probabilities
-        // Identical squares: pool their probabilities.
+        // Identical squares: the same picture read several times, so the readings add up (their
+        // probabilities multiply). A mean would let one unsure reading pull a sure one down.
         for group in identicalGroups(cells) where group.count > 1 {
-            var mean = [Double](repeating: 0, count: classes.count)
-            for i in group { for k in mean.indices { mean[k] += p[i][k] / Double(group.count) } }
-            for i in group { p[i] = mean }
+            var logs = [Double](repeating: 0, count: classes.count)
+            for i in group { for k in logs.indices { logs[k] += log(max(p[i][k], 1e-6)) } }
+            let top = logs.max() ?? 0
+            let combined = logs.map { exp($0 - top) }
+            let sum = combined.reduce(0, +)
+            for i in group { p[i] = combined.map { $0 / sum } }
         }
         // No pawns on the top or bottom row, whichever side is at the bottom.
         for i in 0..<64 where i / 8 == 0 || i / 8 == 7 {
@@ -559,10 +622,10 @@ enum DiagramReader {
             if kings.isEmpty {
                 // The likeliest king among the squares that hold some piece.
                 if let i = (0..<64).filter({ best($0) != 0 }).max(by: { p[$0][king] < p[$1][king] }), p[i][king] > 0.01 {
-                    // The king, kept below the doubt threshold: it was a guess. The rest of the
-                    // probability is shared as before, so the row still sums to 1.
-                    let others = p[i].indices.filter { $0 != king }.map { p[i][$0] }.reduce(0, +)
-                    p[i] = p[i].indices.map { $0 == king ? 0.79 : (others > 0 ? p[i][$0] / others * 0.21 : 0) }
+                    // The king, with what the square was read as kept as a rival: it was a guess,
+                    // and is shown as doubtful.
+                    let read = best(i)
+                    p[i] = p[i].indices.map { $0 == king ? 0.79 : $0 == read ? 0.21 : 0 }
                 }
             } else if kings.count > 1 {
                 let keep = kings.max { p[$0][king] < p[$1][king] }!
@@ -614,16 +677,16 @@ enum DiagramReader {
 
     static func assemble(_ probabilities: [[Double]], board: CGImage, quad: Quad) -> Reading {
         var pieces = [Piece?](repeating: nil, count: 64)
-        var confidence = [Double](repeating: 1, count: 64)
+        var uncertain = [Bool](repeating: false, count: 64)
         // Top row first, as printed: with White at the bottom, the top row is the 8th rank.
         for i in 0..<64 {
             let p = probabilities[i]
             let best = p.indices.max { p[$0] < p[$1] } ?? 0
             let square = Square.at(file: i % 8, rank: 7 - i / 8)
             pieces[square] = classes[best]
-            confidence[square] = p[best]
+            uncertain[square] = isDoubtful(p)
         }
-        var reading = Reading(pieces: pieces, confidence: confidence, board: board, quad: quad, flipped: false)
+        var reading = Reading(pieces: pieces, uncertain: uncertain, board: board, quad: quad, flipped: false)
         if looksFlipped(pieces) { reading.turnRound() }
         return reading
     }
@@ -647,7 +710,7 @@ extension DiagramReader.Reading {
     /// The board turned round: the diagram's bottom was Black's side, or was not.
     mutating func turnRound() {
         pieces.reverse()
-        confidence.reverse()
+        uncertain.reverse()
         flipped.toggle()
     }
 

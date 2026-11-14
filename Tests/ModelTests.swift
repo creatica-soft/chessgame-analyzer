@@ -124,6 +124,9 @@ struct BridgeTests {
         #expect(EngineService.validationError(fen: "8/8/8/8/8/8/8/K7 w - - 0 1") != nil)
         #expect(EngineService.validationError(fen: "4k3/8/8/8/8/8/4R3/4K3 w - - 0 1") == "the side not to move is in check")
         #expect(EngineService.validationError(fen: "P3k3/8/8/8/8/8/8/4K3 w - - 0 1") != nil)
+        // A third knight with all eight pawns still on the board: no pawn could have promoted.
+        #expect(EngineService.validationError(fen: "4k3/8/8/8/8/NNN5/PPPPPPPP/4K3 w - - 0 1") == "White has more promoted pieces than missing pawns")
+        #expect(EngineService.validationError(fen: "4k3/8/8/8/8/NNN5/PPPPPPP1/4K3 w - - 0 1") == nil)
     }
 
     @Test func terminalPositions() {

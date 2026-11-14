@@ -104,6 +104,7 @@ final class EngineService {
         owner = client
         lines = [:]
         searchLimit = limit
+        Self.recordSearch(fen)
         send("position fen \(fen)")
         send(limit.goCommand)
         outstandingSearches += 1
@@ -142,6 +143,14 @@ final class EngineService {
         guard searching else { return }
         send("stop")
         searching = false
+    }
+
+    /// The position about to be searched, kept in Documents/last-search.txt: if the engine
+    /// crashes, it takes the app with it, and this is what it was looking at.
+    private static func recordSearch(_ fen: String) {
+        guard let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+        let text = "\(fen)\n\(ISO8601DateFormatter().string(from: Date()))\n"
+        try? text.write(to: documents.appendingPathComponent("last-search.txt"), atomically: true, encoding: .utf8)
     }
 
     private func send(_ command: String) {

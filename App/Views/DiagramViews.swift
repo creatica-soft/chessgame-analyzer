@@ -1,157 +1,243 @@
 import PhotosUI
 import SwiftUI
 
-/// A diagram read from a picture, before it replaces the board: the picture as it was cut,
-/// beside the position read, with the doubtful squares marked.
-struct DiagramReviewSheet: View {
-    @State var reading: DiagramReader.Reading
-    let onUse: (Position) -> Void
-    @State private var sideToMove = PieceColor.white
-    /// nil until changed: every castling the diagram allows.
-    @State private var castling: CastlingRights?
-    @State private var enPassant: Square?
+/// Above the board while a diagram's reading is checked: what was read and how sure it was,
+/// the picture to compare with, turning the board round, and Done.
+struct DiagramCheckBar: View {
+    @Bindable var model: AnalysisModel
+    let reading: DiagramReader.Reading
+    @Binding var showingPicture: Bool
+    /// Opens the corners for setting by hand.
+    let onAdjust: () -> Void
 
-    private var position: Position {
-        reading.position(sideToMove: sideToMove, castling: castling, enPassant: enPassant)
+    var body: some View {
+        HStack(alignment: .center, spacing: 10) {
+            Button { showingPicture.toggle() } label: {
+                DiagramPicture(reading: reading, boardFlipped: model.flipped)
+                    .frame(width: 48, height: 48)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .overlay(RoundedRectangle(cornerRadius: 4)
+                        .stroke(showingPicture ? Color.accentColor : Color.secondary.opacity(0.4),
+                                lineWidth: showingPicture ? 2 : 1))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(showingPicture ? "Show the board" : "Show the picture")
+            VStack(alignment: .leading, spacing: 2) {
+                status
+                Text(showingPicture ? "Showing the picture: tap it to go back."
+                                    : "Tap the picture to compare. Check whose move it is, and castling.")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(spacing: 6) {
+                Button("Done") {
+                    showingPicture = false
+                    model.closeDiagram()
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+                HStack(spacing: 14) {
+                    if reading.photo != nil {
+                        Button("Adjust Corners", systemImage: "crop", action: onAdjust)
+                            .accessibilityHint("Set the board's corners in the picture by hand")
+                    }
+                    Button("Turn Round", systemImage: "arrow.up.arrow.down") { model.turnDiagramRound() }
+                        .accessibilityHint("The diagram was printed from the other side")
+                }
+                .labelStyle(.iconOnly)
+                .controlSize(.small)
+            }
+        }
+        .padding(8)
+        .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
     }
+
+    @ViewBuilder
+    private var status: some View {
+        let left = model.doubtful.count
+        Group {
+            if reading.doubtful.count >= 8 && left == reading.doubtful.count {
+                Label("Many squares uncertain: is the whole board in the picture?", systemImage: "viewfinder")
+                    .foregroundStyle(.orange)
+            } else if left > 0 {
+                Label("\(left) square\(left == 1 ? "" : "s") to check, outlined", systemImage: "questionmark.circle")
+                    .foregroundStyle(.orange)
+            } else if reading.doubtful.isEmpty {
+                Label("Every square read with confidence", systemImage: "checkmark.circle")
+                    .foregroundStyle(.green)
+            } else {
+                Label("Every uncertain square set", systemImage: "checkmark.circle")
+                    .foregroundStyle(.green)
+            }
+        }
+        .font(.subheadline.weight(.medium))
+        .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// The straightened picture of a diagram, cut to the board and turned like the board on screen,
+/// so it lies square for square over it.
+struct DiagramPicture: View {
+    let reading: DiagramReader.Reading
+    let boardFlipped: Bool
+
+    var body: some View {
+        GeometryReader { geo in
+            // The straightened picture keeps a margin round the board; leave it outside the frame.
+            let g = DiagramReader.Geometry.self
+            let scale = (8 + 2 * g.margin) / 8
+            Image(decorative: reading.board, scale: 1)
+                .resizable()
+                .interpolation(.medium)
+                .frame(width: geo.size.width * scale, height: geo.size.height * scale)
+                .rotationEffect(reading.flipped != boardFlipped ? .degrees(180) : .zero)
+                .frame(width: geo.size.width, height: geo.size.height)
+                .clipped()
+        }
+        .aspectRatio(1, contentMode: .fit)
+    }
+}
+
+/// The whole picture with the board's outline and its grid, the corners dragged into place by
+/// hand: for a board that was not found, or was found wrongly. While a corner is dragged, a
+/// magnified view of it shows where it is, above the finger.
+struct CornerEditor: View {
+    let photo: CGImage
+    @State var quad: DiagramReader.Quad
+    let note: String?
+    let onRead: (DiagramReader.Quad) -> Void
     @Environment(\.dismiss) private var dismiss
+    @State private var dragged: Int?
+    @State private var dragStart: CGPoint?
+
+    private static let loupeSize = 120.0
+    /// The loupe's scale, in points per pixel of the picture (at most 2000 pixels across): about
+    /// four times the picture on screen.
+    private static let zoom = 0.75
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 14) {
-                    HStack(alignment: .top, spacing: 10) {
-                        VStack(spacing: 4) {
-                            Image(decorative: reading.board, scale: 1)
-                                .resizable()
-                                .interpolation(.medium)
-                                .aspectRatio(1, contentMode: .fit)
-                                // Turned like the board beside it.
-                                .rotationEffect(reading.flipped ? .degrees(180) : .zero)
-                            Text("Picture").font(.caption).foregroundStyle(.secondary)
+            VStack(spacing: 8) {
+                Text(note ?? "Drag the corners onto the board's corners, so the grid lines fall between the squares.")
+                    .font(.footnote).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                GeometryReader { geo in
+                    let iw = Double(photo.width), ih = Double(photo.height)
+                    let scale = min(geo.size.width / iw, geo.size.height / ih)
+                    let origin = CGPoint(x: (geo.size.width - iw * scale) / 2, y: (geo.size.height - ih * scale) / 2)
+                    let toView = { (p: CGPoint) in CGPoint(x: origin.x + p.x * scale, y: origin.y + p.y * scale) }
+                    ZStack(alignment: .topLeading) {
+                        Image(decorative: photo, scale: 1)
+                            .resizable()
+                            .frame(width: iw * scale, height: ih * scale)
+                            .offset(x: origin.x, y: origin.y)
+                        Canvas { context, _ in drawGrid(in: &context, toView: toView) }
+                            .allowsHitTesting(false)
+                        ForEach(0..<4, id: \.self) { i in
+                            handle(i, at: toView(corner(i)), scale: scale, bounds: CGSize(width: iw, height: ih))
                         }
-                        VStack(spacing: 4) {
-                            BoardView(position: position, flipped: false,
-                                      selected: nil, bestMove: nil, marked: Set(reading.doubtful), onTap: { _ in })
-                            Text("Read").font(.caption).foregroundStyle(.secondary)
+                        if let i = dragged {
+                            loupe(at: corner(i), viewPoint: toView(corner(i)), size: geo.size)
                         }
                     }
-                    summary
-                    Picker("Side to move", selection: $sideToMove) {
-                        Text("White to move").tag(PieceColor.white)
-                        Text("Black to move").tag(PieceColor.black)
-                    }
-                    .pickerStyle(.segmented)
-                    .onChange(of: sideToMove) { enPassant = nil }
-                    notShown
-                    Button("Turn Board Round", systemImage: "arrow.up.arrow.down") {
-                        reading.turnRound()
-                        castling = nil
-                        enPassant = nil
-                        chooseSideToMove()
-                    }
-                    .font(.callout)
-                    Text("A diagram doesn't show whose move it is, whether the king or rooks have moved, or the last move: check the caption. Squares can be corrected on the board afterwards.")
-                        .font(.footnote).foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(16)
+                .padding(.horizontal, 8)
             }
-            .onAppear(perform: chooseSideToMove)
-            .navigationTitle("Diagram")
+            .navigationTitle("Board Corners")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Use Position") {
+                    Button("Read") {
                         dismiss()
-                        onUse(position)
+                        onRead(quad)
                     }
                 }
             }
         }
     }
 
-    /// When only one side to move makes a legal position (the other side is in check), that one.
-    private func chooseSideToMove() {
-        let legal = [PieceColor.white, .black].filter {
-            EngineService.validationError(fen: reading.position(sideToMove: $0).fen) == nil
-        }
-        if legal.count == 1 { sideToMove = legal[0] }
+    private func corner(_ i: Int) -> CGPoint {
+        [quad.topLeft, quad.topRight, quad.bottomRight, quad.bottomLeft][i]
     }
 
-    /// Castling and en passant, offered only where the diagram allows them.
-    @ViewBuilder
-    private var notShown: some View {
-        let possible = reading.possibleCastling
-        let passant = reading.possibleEnPassant(sideToMove: sideToMove)
-        if !possible.isEmpty || !passant.isEmpty {
-            VStack(alignment: .leading, spacing: 6) {
-                ForEach(CastlingRights.ordered.filter { possible.contains($0.right) }, id: \.letter) { c in
-                    Toggle(castlingLabel(c.right), isOn: Binding(
-                        get: { (castling ?? possible).contains(c.right) },
-                        set: { on in
-                            var rights = castling ?? possible
-                            if on { rights.insert(c.right) } else { rights.remove(c.right) }
-                            castling = rights
-                        }))
+    private func setCorner(_ i: Int, _ p: CGPoint) {
+        switch i {
+        case 0: quad.topLeft = p
+        case 1: quad.topRight = p
+        case 2: quad.bottomRight = p
+        default: quad.bottomLeft = p
+        }
+    }
+
+    /// The outline and the lines between the squares, as the board will be cut.
+    private func drawGrid(in context: inout GraphicsContext, toView: (CGPoint) -> CGPoint) {
+        let h = DiagramReader.Homography(quad)
+        var grid = Path(), outline = Path()
+        for k in 0...8 {
+            let t = Double(k) / 8
+            var path = (k == 0 || k == 8) ? outline : grid
+            path.move(to: toView(h.map(t, 0))); path.addLine(to: toView(h.map(t, 1)))
+            path.move(to: toView(h.map(0, t))); path.addLine(to: toView(h.map(1, t)))
+            if k == 0 || k == 8 { outline = path } else { grid = path }
+        }
+        context.stroke(grid, with: .color(.white.opacity(0.8)), lineWidth: 2.5)
+        context.stroke(grid, with: .color(.accentColor), lineWidth: 1)
+        context.stroke(outline, with: .color(.white.opacity(0.8)), lineWidth: 4)
+        context.stroke(outline, with: .color(.accentColor), lineWidth: 2)
+    }
+
+    private func handle(_ i: Int, at p: CGPoint, scale: Double, bounds: CGSize) -> some View {
+        Circle()
+            .strokeBorder(Color.accentColor, lineWidth: 3)
+            .background(Circle().fill(Color.white.opacity(0.25)))
+            .frame(width: 30, height: 30)
+            .frame(width: 48, height: 48)
+            .contentShape(Rectangle())
+            .position(p)
+            .gesture(DragGesture(minimumDistance: 0)
+                .onChanged { value in
+                    if dragStart == nil { dragStart = corner(i); dragged = i }
+                    guard let start = dragStart else { return }
+                    let x = start.x + value.translation.width / scale, y = start.y + value.translation.height / scale
+                    setCorner(i, CGPoint(x: min(max(x, 0), bounds.width), y: min(max(y, 0), bounds.height)))
                 }
-                if !passant.isEmpty {
-                    Picker("Last move", selection: $enPassant) {
-                        Text("Not a pawn's double step").tag(Square?.none)
-                        ForEach(passant, id: \.self) { sq in
-                            Text(doubleStepLabel(sq)).tag(Square?.some(sq))
-                        }
-                    }
-                }
-            }
-            .font(.callout)
-        }
+                .onEnded { _ in
+                    dragStart = nil
+                    dragged = nil
+                    // Whichever handle went where, the corners are named by where they are.
+                    quad = quad.ordered
+                })
+            .accessibilityLabel(["Top left", "Top right", "Bottom right", "Bottom left"][i] + " corner")
     }
 
-    private func castlingLabel(_ right: CastlingRights) -> String {
-        switch right {
-        case .whiteKingside: "White can castle short"
-        case .whiteQueenside: "White can castle long"
-        case .blackKingside: "Black can castle short"
-        default: "Black can castle long"
-        }
-    }
-
-    /// "…e7-e5" for en passant square e6.
-    private func doubleStepLabel(_ passed: Square) -> String {
-        let file = Array("abcdefgh")[passed.file]
-        return passed.rank == 5 ? "…\(file)7-\(file)5" : "\(file)2-\(file)4"
-    }
-
-    @ViewBuilder
-    private var summary: some View {
-        let doubtful = reading.doubtful.count
-        let pieces = reading.pieces.compactMap { $0 }.count
-        VStack(alignment: .leading, spacing: 4) {
-            Label("\(pieces) pieces read", systemImage: "checkmark.circle").foregroundStyle(.green)
-            if doubtful >= 8 {
-                Label("Many squares are uncertain: is the whole board in the picture? A closer, straighter picture reads better.",
-                      systemImage: "viewfinder")
-                    .foregroundStyle(.orange)
-            } else if doubtful > 0 {
-                Label("\(doubtful) square\(doubtful == 1 ? "" : "s") uncertain, outlined: check them against the picture.",
-                      systemImage: "questionmark.circle")
-                    .foregroundStyle(.orange)
-            }
-            if let problem = EngineService.validationError(fen: position.fen) {
-                Label(problem.prefix(1).uppercased() + problem.dropFirst(), systemImage: "exclamationmark.triangle")
-                    .foregroundStyle(.orange)
-            }
-            if reading.flipped {
-                Label("Printed from Black's side; turned round.", systemImage: "arrow.up.arrow.down")
-                    .foregroundStyle(.secondary)
+    /// The picture round a corner, magnified, with a cross on the corner: in the top corner away
+    /// from the finger.
+    private func loupe(at p: CGPoint, viewPoint: CGPoint, size: CGSize) -> some View {
+        let s = Self.loupeSize, z = Self.zoom
+        let x = viewPoint.x < size.width / 2 ? size.width - s - 8 : 8.0
+        return ZStack(alignment: .topLeading) {
+            Image(decorative: photo, scale: 1)
+                .resizable()
+                .frame(width: Double(photo.width) * z, height: Double(photo.height) * z)
+                .offset(x: s / 2 - p.x * z, y: s / 2 - p.y * z)
+            Canvas { context, _ in
+                var cross = Path()
+                cross.move(to: CGPoint(x: s / 2 - 12, y: s / 2)); cross.addLine(to: CGPoint(x: s / 2 + 12, y: s / 2))
+                cross.move(to: CGPoint(x: s / 2, y: s / 2 - 12)); cross.addLine(to: CGPoint(x: s / 2, y: s / 2 + 12))
+                context.stroke(cross, with: .color(.accentColor), lineWidth: 2)
             }
         }
-        .font(.callout)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(width: s, height: s, alignment: .topLeading)
+        .clipShape(Circle())
+        .overlay(Circle().stroke(Color.white, lineWidth: 3))
+        .shadow(radius: 4)
+        .offset(x: x, y: 8)
+        .allowsHitTesting(false)
     }
 }
 
