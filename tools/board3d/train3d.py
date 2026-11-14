@@ -1,7 +1,7 @@
 """Trains a piece classifier on the square crops: empty or one of 12 pieces, from a 96x48 colour crop.
 Clips are split, not frames: every fourth clip is held out, so the test is on positions and camera
 paths the network never saw. Reports square accuracy and whole boards (frames) read without a mistake.
-usage: train3d.py crops.npz model.pt [epochs]
+usage: train3d.py crops.npz[,more.npz...] model.pt [epochs]
 """
 import sys, time
 import numpy as np
@@ -60,14 +60,18 @@ def evaluate(net, x, y, names, dev):
 
 
 if __name__ == '__main__':
-    data = np.load(sys.argv[1])
     out = sys.argv[2]
     epochs = int(sys.argv[3]) if len(sys.argv) > 3 else 15
-    x, y, clip, names = data['x'], data['y'].astype(np.int64), data['clip'], data['name']
+    parts = [np.load(p) for p in sys.argv[1].split(',')]
+    x = np.concatenate([d['x'] for d in parts]); y = np.concatenate([d['y'] for d in parts]).astype(np.int64)
+    clip = np.concatenate([d['clip'] for d in parts]); names = np.concatenate([d['name'] for d in parts])
+    source = np.concatenate([np.full(len(d['y']), i) for i, d in enumerate(parts)])
+    del parts
     ids = np.unique(clip)
     test_ids = ids[3::4]
     test = np.isin(clip, test_ids)
-    xt, yt, xv, yv, nv = x[~test], y[~test], x[test], y[test], names[test]
+    xt, yt, xv, yv, nv, sv = x[~test], y[~test], x[test], y[test], names[test], source[test]
+    del x
     print(f'train {len(xt)} crops from {len(ids) - len(test_ids)} clips, test {len(xv)} from {len(test_ids)} clips')
     dev = 'mps' if torch.backends.mps.is_available() else 'cpu'
     net = PieceNet().to(dev)
@@ -91,9 +95,13 @@ if __name__ == '__main__':
             total += loss.item()
         err, clean, mean_wrong, _, _ = evaluate(net, xv, yv, nv, dev)
         print(f'epoch {epoch + 1}: loss {total / (len(perm) // 128):.3f}  test squares wrong {err:.2%}  '
-              f'boards all right {clean:.1%}  mean wrong squares {mean_wrong:.2f}  ({time.time() - t0:.0f}s)')
+              f'boards all right {clean:.1%}  mean wrong squares {mean_wrong:.2f}  ({time.time() - t0:.0f}s)', flush=True)
     torch.save(net.state_dict(), out)
     err, clean, mean_wrong, pred, p = evaluate(net, xv, yv, nv, dev)
+    if len(set(sv)) > 1:
+        for i, path in enumerate(sys.argv[1].split(',')):
+            e, c, m, _, _ = evaluate(net, xv[sv == i], yv[sv == i], nv[sv == i], dev)
+            print(f'{path}: test squares wrong {e:.2%}  boards all right {c:.1%}  mean wrong squares {m:.2f}')
     # Confusions.
     conf = np.zeros((13, 13), int)
     for a, b in zip(yv, pred): conf[a, b] += 1

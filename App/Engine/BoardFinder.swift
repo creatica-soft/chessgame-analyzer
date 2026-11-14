@@ -123,17 +123,54 @@ enum BoardFinder {
         let w = image.width, h = image.height
         let grey = image.grey()
         let blurred = gaussian(grey, w, h, sigma: 2)
-        let points = xCorners(blurred, w, h)
+        // X-corners checked by quadrants first: the ring finds boards turned near 45 degrees, which
+        // the quadrants miss, but places the board a square off more often. A grid whose cells do
+        // not alternate light and dark is not the board (a lattice sheared across the squares):
+        // better none, and the corners set by hand, than a reading of it.
+        var fallback: (corners: [CGPoint], score: Double)?
+        for ring in [false, true] {
+            guard let (named, agree) = board(xCorners(blurred, w, h, ring: ring), grey, w, h) else { continue }
+            let score = checkerScore(grey, w, h, Projective(board: named))
+            if agree, score >= minCheckerScore { return named.map { CGPoint(x: $0.x / scale, y: $0.y / scale) } }
+            if score >= minCheckerScore, score > fallback?.score ?? 0 { fallback = (named, score) }
+        }
+        return fallback?.corners.map { CGPoint(x: $0.x / scale, y: $0.y / scale) }
+    }
+
+    /// Below this `checkerScore` a grid is taken not to be the board: on held-out frames of the
+    /// training board, no grid that read right scored under 0.7, and most wrong ones under 0.6.
+    static let minCheckerScore = 0.65
+
+    /// A board seen in perspective is a convex quadrilateral without very sharp corners; a lattice
+    /// fitted to stray points can make a thin sliver instead.
+    static func plausible(_ q: [CGPoint]) -> Bool {
+        var sign = 0.0
+        for k in 0..<4 {
+            let a = q[(k + 3) % 4], b = q[k], c = q[(k + 1) % 4]
+            let u = (a.x - b.x, a.y - b.y), v = (c.x - b.x, c.y - b.y)
+            let cross = u.0 * v.1 - u.1 * v.0
+            if sign == 0 { sign = cross < 0 ? -1 : 1 }
+            guard cross * sign > 0 else { return false }
+            let angle = acos(max(-1, min(1, (u.0 * v.0 + u.1 * v.1) / (hypot(u.0, u.1) * hypot(v.0, v.1)))))
+            guard angle > 20 * .pi / 180 else { return false }
+        }
+        return true
+    }
+
+    /// The board on these X-corners, a1, h1, h8, a8, named so that a1 is a dark corner nearest the
+    /// camera; and whether the squares' colours bear the naming out.
+    static func board(_ points: [CGPoint], _ grey: [Float], _ w: Int, _ h: Int) -> ([CGPoint], Bool)? {
         guard let (lattice, onGrid) = fitLattice(points, grey: grey, w, h),
               let (i0, j0) = placeBoard(grey, w, h, lattice, onGrid) else { return nil }
         let quad = [lattice.map(i0, j0), lattice.map(i0 + 8, j0), lattice.map(i0 + 8, j0 + 8), lattice.map(i0, j0 + 8)]
-        var named = nameCorners(quad)
-        if !coloursAgree(grey, w, h, Projective(board: named)) {
-            // a1 is light here: the camera is at a side of the board, not White's. Taken as the
-            // a-file side (White on the right); Turn Round fixes the other.
-            named = [named[1], named[2], named[3], named[0]]
-        }
-        return named.map { CGPoint(x: $0.x / scale, y: $0.y / scale) }
+        guard plausible(quad) else { return nil }
+        let named = nameCorners(quad)
+        guard let agree = coloursAgree(grey, w, h, Projective(board: named)) else { return (named, false) }
+        if agree { return (named, true) }
+        // a1 is light here: the camera is at a side of the board, not White's, or the board is
+        // turned. Named from the next corner; the reader settles a half turn from the pieces.
+        let turned = [named[1], named[2], named[3], named[0]]
+        return (turned, coloursAgree(grey, w, h, Projective(board: turned)) == true)
     }
 
     // MARK: - Filtering
@@ -169,7 +206,9 @@ enum BoardFinder {
 
     // MARK: - X-corners
 
-    static func xCorners(_ g: [Float], _ w: Int, _ h: Int, maxPoints: Int = 400) -> [CGPoint] {
+    /// X-corners: saddles of the brightness with the pattern of four squares round them, checked by
+    /// the four diagonal quadrants (`ring` false) or by a ring at any angle (see `xPattern`).
+    static func xCorners(_ g: [Float], _ w: Int, _ h: Int, maxPoints: Int = 400, ring: Bool = false) -> [CGPoint] {
         func at(_ x: Int, _ y: Int) -> Float {
             let xr = x < 0 ? -x : x >= w ? 2 * (w - 1) - x : x
             let yr = y < 0 ? -y : y >= h ? 2 * (h - 1) - y : y
@@ -215,24 +254,56 @@ enum BoardFinder {
             }
         }
         peaks.sort { $0.0 > $1.0 }
-        // The pattern round each: the four diagonal quadrants, opposite ones alike.
         let r = 6
         func mean(_ x0: Int, _ x1: Int, _ y0: Int, _ y1: Int) -> Float {
             var s: Float = 0
             for y in y0..<y1 { for x in x0..<x1 { s += g[y * w + x] } }
             return s / Float((x1 - x0) * (y1 - y0))
         }
-        var found: [CGPoint] = []
-        for (_, x, y) in peaks.prefix(maxPoints * 3) {
-            guard x >= r + 1, y >= r + 1, x < w - r - 1, y < h - r - 1 else { continue }
+        func quadrants(_ x: Int, _ y: Int) -> Bool {
             let q0 = mean(x - r, x - 1, y - r, y - 1), q1 = mean(x + 2, x + r + 1, y - r, y - 1)
             let q2 = mean(x + 2, x + r + 1, y + 2, y + r + 1), q3 = mean(x - r, x - 1, y + 2, y + r + 1)
             let contrast = abs((q0 + q2) / 2 - (q1 + q3) / 2)
-            guard contrast >= 25, abs(q0 - q2) <= contrast * 0.6, abs(q1 - q3) <= contrast * 0.6 else { continue }
+            return contrast >= 25 && abs(q0 - q2) <= contrast * 0.6 && abs(q1 - q3) <= contrast * 0.6
+        }
+        var found: [CGPoint] = []
+        for (_, x, y) in peaks.prefix(maxPoints * 3) {
+            guard x >= r + 1, y >= r + 1, x < w - r - 1, y < h - r - 1,
+                  ring ? xPattern(g, w, x, y, r) : quadrants(x, y) else { continue }
             found.append(subPixel(g, w, h, x, y))
             if found.count >= maxPoints { break }
         }
         return found
+    }
+
+    private static let ring: [(Float, Float)] = (0..<16).map {
+        let a = Double($0) * 2 * .pi / 16
+        return (Float(cos(a)), Float(sin(a)))
+    }
+
+    /// The pattern round an X-corner, at any angle: on a ring of radius `r` round it the brightness
+    /// changes from light to dark four times, and is alike at opposite points (a corner of four
+    /// squares is symmetric about its centre, and stays so in perspective). As grid.py's x_pattern.
+    static func xPattern(_ g: [Float], _ w: Int, _ x: Int, _ y: Int, _ r: Int) -> Bool {
+        var s = [Float](repeating: 0, count: 16)
+        for (i, (c, sn)) in ring.enumerated() {
+            let px = Float(x) + Float(r) * c, py = Float(y) + Float(r) * sn
+            let x0 = Int(px.rounded(.down)), y0 = Int(py.rounded(.down))
+            let fx = px - Float(x0), fy = py - Float(y0)
+            s[i] = g[y0 * w + x0] * (1 - fx) * (1 - fy) + g[y0 * w + x0 + 1] * fx * (1 - fy)
+                + g[(y0 + 1) * w + x0] * (1 - fx) * fy + g[(y0 + 1) * w + x0 + 1] * fx * fy
+        }
+        let o = s.sorted()
+        let low = (o[0] + o[1] + o[2] + o[3]) / 4, high = (o[12] + o[13] + o[14] + o[15]) / 4
+        let contrast = high - low
+        guard contrast >= 25 else { return false }
+        var asymmetry: Float = 0
+        for i in 0..<8 { asymmetry += abs(s[i] - s[i + 8]) }
+        guard asymmetry / 8 <= contrast * 0.3 else { return false }
+        let middle = (high + low) / 2
+        var changes = 0
+        for i in 0..<16 where (s[i] > middle) != (s[(i + 15) % 16] > middle) { changes += 1 }
+        return changes == 4
     }
 
     /// An X-corner to a fraction of a pixel: the point every nearby gradient points across
@@ -511,8 +582,26 @@ enum BoardFinder {
         return [q[a1], q[h1], q[h8], q[a8]]
     }
 
-    /// Whether the dark squares (a1's colour) are the darker half, judged on the near part of each.
-    static func coloursAgree(_ grey: [Float], _ w: Int, _ h: Int, _ board: Projective) -> Bool {
+    /// How cleanly the board's squares alternate light and dark, either way round: the share of
+    /// the squares in the picture whose near part is on the side of the median their colour puts
+    /// them. About 1 for the board itself; near a half for a grid sheared across the squares.
+    static func checkerScore(_ grey: [Float], _ w: Int, _ h: Int, _ board: Projective) -> Double {
+        var values: [(Float, Bool)] = []
+        for f in 0..<8 {
+            for r in 0..<8 {
+                guard let v = squareValue(grey, w, h, board, Double(f), Double(r)) else { continue }
+                values.append((v, (f + r) % 2 == 0))
+            }
+        }
+        guard values.count >= 32 else { return 0 }
+        let m = median(values.map(\.0))
+        let agree = values.filter { ($0.0 < m) == $0.1 }.count
+        return Double(max(agree, values.count - agree)) / Double(values.count)
+    }
+
+    /// Whether the dark squares (a1's colour) are clearly darker than the light ones; nil when too
+    /// few squares are in the picture to tell.
+    static func coloursAgree(_ grey: [Float], _ w: Int, _ h: Int, _ board: Projective) -> Bool? {
         var dark: [Float] = [], light: [Float] = []
         for f in 0..<8 {
             for r in 0..<8 {
@@ -520,7 +609,7 @@ enum BoardFinder {
                 if (f + r) % 2 == 0 { dark.append(v) } else { light.append(v) }
             }
         }
-        guard dark.count >= 16, light.count >= 16 else { return true }
+        guard dark.count >= 16, light.count >= 16 else { return nil }
         return median(dark) < median(light) - 30
     }
 }

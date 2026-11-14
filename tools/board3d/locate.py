@@ -13,6 +13,10 @@ import grid
 
 SKIP = {'IMG_9031', 'IMG_9032'}   # filmed from the side and from Black's side
 
+# With --turning (clips where the board is turned round while filmed), a frame whose colours
+# disagree with the naming is named again from the next corner: the corner names then hold up to a
+# half turn of the board, which orient.py settles from the pieces.
+
 
 def name_corners(quad):
     """quad: the board's four corners in lattice order. Returns a1, h1, h8, a8."""
@@ -54,26 +58,36 @@ def colours_agree(gray, Hb):
 
 
 if __name__ == '__main__':
-    src, out = sys.argv[1], sys.argv[2]
+    turning = '--turning' in sys.argv
+    src, out = [a for a in sys.argv[1:] if not a.startswith('--')][:2]
     files = sorted(f for f in os.listdir(src) if f.endswith('.jpg'))
     result = {}
     kept = 0
     for f in files:
         clip = f.split('-')[0]
-        if clip in SKIP:
+        if clip in SKIP and not turning:
             continue
         img = cv2.imread(os.path.join(src, f))
-        quad, pts, S = grid.find_board(img)
-        entry = {'found': quad is not None}
-        if quad is not None:
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        entry = {'found': False}
+        # X-corners checked by quadrants first, then by a ring (see grid.find_board).
+        for ring in (False, True):
+            quad, pts, S = grid.find_board(img, ring=ring)
+            if quad is None:
+                continue
             corners = name_corners(quad)
-            Hb = board_homography(corners)
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            ok, diff = colours_agree(gray, Hb)
-            entry.update(corners=corners.tolist(), colours=bool(ok), contrast=float(diff),
-                         inside=int(S[1][2]))
+            ok, diff = colours_agree(gray, board_homography(corners))
+            if turning and not ok:
+                turned = corners[[1, 2, 3, 0]]
+                ok2, diff2 = colours_agree(gray, board_homography(turned))
+                if ok2:
+                    corners, ok, diff = turned, ok2, diff2
+            if ok or not entry['found']:
+                entry = {'found': True, 'corners': corners.tolist(), 'colours': bool(ok), 'contrast': float(diff),
+                         'inside': int(S[1][2]), 'ring': ring}
             if ok:
-                kept += 1
+                break
+        kept += bool(entry.get('colours'))
         result[f] = entry
     json.dump(result, open(out, 'w'), indent=0)
     found = sum(e['found'] for e in result.values())

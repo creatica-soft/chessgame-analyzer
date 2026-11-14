@@ -15,7 +15,39 @@ import cv2
 WORK = 960  # longer side the search works at
 
 
-def xcorners(gray, sigma=2.0, max_points=400):
+RING = np.arange(16) * (2 * np.pi / 16)
+
+
+def x_pattern(g, x, y, r):
+    """The pattern round an X-corner, at any angle: on a ring round it the brightness changes from
+    light to dark four times, and is alike at opposite points (a corner of four squares is
+    symmetric about its centre, and stays so in perspective)."""
+    px, py = x + r * np.cos(RING), y + r * np.sin(RING)
+    x0, y0 = np.floor(px).astype(int), np.floor(py).astype(int)
+    fx, fy = px - x0, py - y0
+    s = (g[y0, x0] * (1 - fx) * (1 - fy) + g[y0, x0 + 1] * fx * (1 - fy)
+         + g[y0 + 1, x0] * (1 - fx) * fy + g[y0 + 1, x0 + 1] * fx * fy)
+    o = np.sort(s)
+    contrast = o[-4:].mean() - o[:4].mean()
+    if contrast < 25:
+        return False
+    if np.abs(s[:8] - s[8:]).mean() > contrast * 0.3:
+        return False
+    above = s > (o[-4:].mean() + o[:4].mean()) / 2
+    return int((above != np.roll(above, 1)).sum()) == 4
+
+
+def quadrant_pattern(g, x, y, r):
+    """The pattern round an X-corner whose squares' edges run near the picture's axes: of the four
+    diagonal quadrants, opposite ones alike, neighbours different."""
+    q = [g[y - r:y - 1, x - r:x - 1].mean(), g[y - r:y - 1, x + 2:x + r + 1].mean(),
+         g[y + 2:y + r + 1, x + 2:x + r + 1].mean(), g[y + 2:y + r + 1, x - r:x - 1].mean()]
+    a, b = (q[0] + q[2]) / 2, (q[1] + q[3]) / 2
+    contrast = abs(a - b)
+    return not (contrast < 25 or abs(q[0] - q[2]) > contrast * 0.6 or abs(q[1] - q[3]) > contrast * 0.6)
+
+
+def xcorners(gray, sigma=2.0, max_points=400, ring=False):
     g = cv2.GaussianBlur(gray.astype(np.float32), (0, 0), sigma)
     ixx = cv2.Sobel(g, cv2.CV_32F, 2, 0, ksize=3)
     iyy = cv2.Sobel(g, cv2.CV_32F, 0, 2, ksize=3)
@@ -34,12 +66,7 @@ def xcorners(gray, sigma=2.0, max_points=400):
         x, y = xs[i], ys[i]
         if x < r + 1 or y < r + 1 or x >= w - r - 1 or y >= h - r - 1:
             continue
-        # Pattern check: the four diagonal quadrants, opposite ones alike, neighbours different.
-        q = [g[y - r:y - 1, x - r:x - 1].mean(), g[y - r:y - 1, x + 2:x + r + 1].mean(),
-             g[y + 2:y + r + 1, x + 2:x + r + 1].mean(), g[y + 2:y + r + 1, x - r:x - 1].mean()]
-        a, b = (q[0] + q[2]) / 2, (q[1] + q[3]) / 2
-        contrast = abs(a - b)
-        if contrast < 25 or abs(q[0] - q[2]) > contrast * 0.6 or abs(q[1] - q[3]) > contrast * 0.6:
+        if not (x_pattern if ring else quadrant_pattern)(g, x, y, r):
             continue
         pts.append((x, y))
         if len(pts) >= max_points:
@@ -258,13 +285,30 @@ def place_board(gray, H, lat):
     return best[1]
 
 
-def find_board(image):
-    """The board's corners in `image` (top left, top right, bottom right, bottom left as seen), or None."""
+def plausible(q):
+    """A board seen in perspective is a convex quadrilateral without very sharp corners; a lattice
+    fitted to stray points can make a thin sliver instead."""
+    crosses = []
+    for k in range(4):
+        u, v = q[k - 1] - q[k], q[(k + 1) % 4] - q[k]
+        crosses.append(u[0] * v[1] - u[1] * v[0])
+        cos = np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v) + 1e-9)
+        if np.arccos(np.clip(cos, -1, 1)) <= np.radians(20):
+            return False
+    return all(c > 0 for c in crosses) or all(c < 0 for c in crosses)
+
+
+def find_board(image, ring=False):
+    """The board's corners in `image` (top left, top right, bottom right, bottom left as seen), or None.
+    The X-corners are checked by quadrants, or with `ring` by a ring round them: the ring finds
+    boards turned near 45 degrees, which the quadrants miss, but takes more points on the board's
+    printed border and pieces, and places the board a square off more often. locate.py tries the
+    quadrants first."""
     h, w = image.shape[:2]
     k = WORK / max(h, w)
     small = cv2.resize(image, (int(w * k), int(h * k)), interpolation=cv2.INTER_AREA)
     gray = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
-    pts = xcorners(gray)
+    pts = xcorners(gray, ring=ring)
     H, lat = fit_lattice(pts, gray)
     if H is None:
         return None, pts / k, None
@@ -273,6 +317,8 @@ def find_board(image):
         return None, pts / k, None
     i0, j0 = placed[:2]
     quad = cv2.perspectiveTransform(np.array([[[i0, j0]], [[i0 + 8, j0]], [[i0 + 8, j0 + 8]], [[i0, j0 + 8]]], np.float32), H).reshape(-1, 2)
+    if not plausible(quad):
+        return None, pts / k, None
     # Lattice to image, in full-size pixels, with the board's corner at lattice (0, 0).
     S = np.diag([1 / k, 1 / k, 1]) @ H @ np.array([[1, 0, i0], [0, 1, j0], [0, 0, 1]], np.float64)
     return quad / k, pts / k, (S, placed)

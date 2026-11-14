@@ -66,11 +66,22 @@ enum BoardReader {
                 }
             }
         }
-        // Which way round: the board finder named the corners so that a1 is dark, but a board
-        // turned half round looks the same. The pieces decide: White's pawns and king stand nearer
-        // rank 1 than Black's in nearly every position.
         var probabilities = best!.probabilities
         var board = best!.board
+        // The finder named the corners so that a1 is a dark square; a grid it placed a square off
+        // has the colours the other way, and was named a quarter turn round. Named again on the
+        // grid chosen.
+        if given == nil {
+            let grey = source.grey()
+            let c = [board.map(0, 0), board.map(8, 0), board.map(8, 8), board.map(0, 8)]
+            if BoardFinder.coloursAgree(grey, source.width, source.height, board) == false,
+               BoardFinder.coloursAgree(grey, source.width, source.height, Projective(board: [c[1], c[2], c[3], c[0]])) == true {
+                board = Projective(board: [c[1], c[2], c[3], c[0]])
+                probabilities = try classify(crops(source, board), model: model)
+            }
+        }
+        // Which way round: a1 is dark, but a board turned half round looks the same. The pieces
+        // decide: White's pawns and king stand nearer rank 1 than Black's in nearly every position.
         if given == nil, whiteStandsHigh(probabilities) {
             probabilities = Array(probabilities.reversed())
             board = board * Projective(m: [-1, 0, 8, 0, -1, 8, 0, 0, 1])

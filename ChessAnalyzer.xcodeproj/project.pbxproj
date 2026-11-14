@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0373CE25AFAB8B865EC1A9A6 /* PiecePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1968D526A92E3C2D0152064F /* PiecePalette.swift */; };
+		047A5E979F7AF7753DCB6D95 /* board-9137.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 851241784CB61EBD9E3E28EC /* board-9137.jpg */; };
 		0BDBE8C9A0245CA6EAC1CBB7 /* GamesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18EDCB6DA938D6233B30F114 /* GamesView.swift */; };
 		0CFD2B14C64A63F66C27C5D6 /* tbprobe.c in Sources */ = {isa = PBXBuildFile; fileRef = 0140C3A999EF55C03FBFCE05 /* tbprobe.c */; };
 		10FC5F85EEBCFEE22C13D57B /* AnalysisPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19DF7BFE3CBEF8A44B4F0255 /* AnalysisPanel.swift */; };
@@ -32,6 +33,7 @@
 		4B6AC17B3C7664A439F6272B /* GameTextReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02C74C3769C8F05B383233F /* GameTextReader.swift */; };
 		4DB5566C106A292A53109A0D /* half_ka_v2_hm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 757F5B6A24B580A0FA6C7C66 /* half_ka_v2_hm.cpp */; };
 		51D25127EFC76177030C8FA3 /* board-9065.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1FA958FB3282053A8DC5C922 /* board-9065.jpg */; };
+		6277660E0870C14150FE76C3 /* board-9162.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 9AFE0322F81C9B86E8FE2B88 /* board-9162.jpg */; };
 		6B19E22755FBD74A71764AA7 /* Piece.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5731D4C681520B84B4348A96 /* Piece.swift */; };
 		6CAF7EBAF3C95EB9C8C3784C /* zobrist-hash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FA7283F91278E9A71A65EAD7 /* zobrist-hash.cpp */; };
 		70D42E28624C02D969C192F5 /* move.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09F217E4D6E44E0964BEC200 /* move.cpp */; };
@@ -138,10 +140,12 @@
 		7CC3527EDE7BAF9F468614DE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		7D5E0969D1A8D79675D02C16 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		819AE56AD9872F9294581158 /* nnue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = nnue.cpp; sourceTree = "<group>"; };
+		851241784CB61EBD9E3E28EC /* board-9137.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "board-9137.jpg"; sourceTree = "<group>"; };
 		89BEE8B23277CB0B6F03693F /* GameAnalysisModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameAnalysisModel.swift; sourceTree = "<group>"; };
 		8B4CAC4B6E14CE12D491C1E4 /* ChessAnalyzerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessAnalyzerApp.swift; sourceTree = "<group>"; };
 		90098D8B75960A0BCEEE53A7 /* ChessAnalyzer.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ChessAnalyzer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		985C1EC4874DE2B1781F949B /* PositionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionSheet.swift; sourceTree = "<group>"; };
+		9AFE0322F81C9B86E8FE2B88 /* board-9162.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "board-9162.jpg"; sourceTree = "<group>"; };
 		9CF3D02A9CCCC601A8F66B73 /* pgn.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pgn.cpp; sourceTree = "<group>"; };
 		A37E7384845811442E28C349 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 		AA9D22697E2F15CF1536FD20 /* TextRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextRecognizer.swift; sourceTree = "<group>"; };
@@ -218,6 +222,8 @@
 			children = (
 				1FA958FB3282053A8DC5C922 /* board-9065.jpg */,
 				F711C58C1D6A7D61FBADAB4D /* board-9097.jpg */,
+				851241784CB61EBD9E3E28EC /* board-9137.jpg */,
+				9AFE0322F81C9B86E8FE2B88 /* board-9162.jpg */,
 			);
 			path = Fixtures;
 			sourceTree = "<group>";
@@ -492,6 +498,8 @@
 			files = (
 				51D25127EFC76177030C8FA3 /* board-9065.jpg in Resources */,
 				1754E724A750A1A29CA12144 /* board-9097.jpg in Resources */,
+				047A5E979F7AF7753DCB6D95 /* board-9137.jpg in Resources */,
+				6277660E0870C14150FE76C3 /* board-9162.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

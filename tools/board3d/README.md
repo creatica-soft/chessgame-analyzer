@@ -33,13 +33,34 @@ not in git (`tools/training/` is ignored).
 
        python3 crops.py frames/q4 located.json labels.json crops.npz
 
-4. Train (PyTorch, MPS) with every fourth clip held out, and export:
+   Clips where the board was turned round while filmed (the second set, 9101-9184: a tripod, the
+   board turned a full circle in each clip; 9101 the start, then one clip per half-move in number
+   order, 9111-9128 and 9142 not taken) go through `locate.py --turning`, which names the
+   corners from whichever dark corner suits, and then `orient.py`, which settles the half turn left
+   open from the known position with an existing classifier and drops frames read with many squares
+   wrong (nearly all grids placed a square off):
 
-       python3 train3d.py crops.npz piecenet.pt 10
+       python3 locate.py frames2/f1 located2.json --turning
+       python3 crops.py frames2/f1 located2.json labels2.json crops2-raw.npz
+       python3 orient.py crops2-raw.npz labels2.json piecenet2.pt crops2.npz
+
+   The finder checks X-corners by four quadrants first and, failing that, by a ring round them
+   (`grid.find_board(ring=True)`): the ring finds boards turned near 45 degrees, which the quadrants
+   miss, but takes points on the printed border more often.
+
+4. Train (PyTorch, MPS) with every fourth clip held out, and export (several crop files may be
+   given, comma separated; 8 GB of memory holds the first set at two frames a second and the
+   second at one):
+
+       python3 train3d.py crops.npz,crops2.npz piecenet.pt 12
        python3 export3d.py piecenet.pt ../../App/Resources/PieceClassifier.mlpackage
 
-   Results on the held-out clips (16 clips, 470 frames at four a second): the shipped model,
-   trained 10 epochs on four frames a second, reads 96.2% of frames with every square right
-   (95.3% for the first, trained on one frame a second); nearly all the rest are frames whose grid
-   was placed a square off. All of these clips are filmed from White's side: views from the side
-   or corner-on are read poorly, and need clips filmed from there.
+   The shipped model (piecenet3) was trained 12 epochs on both sets. On the held-out clips' crops:
+   97.5% of the turned-board frames with every square right (26% for piecenet2, trained on the
+   first set only), and 95.4% of the first set's (96.6% for piecenet2).
+
+   End to end in the app (finder, reader and classifier on held-out frames at one a second, 561 of
+   them): 519 read with every square right, 23 with no board found (the corner editor opens), and
+   15 with more than one square wrong. A grid whose cells do not alternate light and dark
+   (`BoardFinder.checkerScore` under 0.65) is refused rather than read. Photos taken close and
+   steeply from the side of the board are still read poorly: not in either set.
