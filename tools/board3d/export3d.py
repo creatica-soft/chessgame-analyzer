@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import coremltools as ct
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from train3d import PieceNet
+from train3d import load
 
 
 class WithSoftmax(torch.nn.Module):
@@ -16,7 +16,7 @@ class WithSoftmax(torch.nn.Module):
         return torch.softmax(self.net(x), dim=1)
 
 
-net = PieceNet(); net.load_state_dict(torch.load(sys.argv[1], map_location='cpu')); net.eval()
+net = load(sys.argv[1])
 model = WithSoftmax(net).eval()
 example = torch.rand(64, 3, 96, 48) * 255
 traced = torch.jit.trace(model, example)

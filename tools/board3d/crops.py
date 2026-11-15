@@ -9,6 +9,7 @@ import numpy as np
 import cv2
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import locate
+import cropset
 
 CLASSES = '.PNBRQKpnbrqk'
 CW, CH = 48, 96          # crop size: width, height
@@ -48,19 +49,15 @@ if __name__ == '__main__':
     frames, located, labels, out = sys.argv[1:5]
     loc = json.load(open(located))
     lab = json.load(open(labels))
-    xs, ys, clips, names = [], [], [], []
-    for f, e in sorted(loc.items()):
-        if not e.get('colours'):
-            continue
+    kept = sorted(f for f, e in loc.items() if e.get('colours'))
+    w = cropset.Writer(out, 64 * len(kept))
+    for f in kept:
         clip = f.split('-')[0]
         img = cv2.imread(os.path.join(frames, f))
-        Hb = locate.board_homography(np.array(e['corners'], np.float32))
+        Hb = locate.board_homography(np.array(loc[f]['corners'], np.float32))
         for fi in range(8):
             for ri in range(8):
-                xs.append(cv2.cvtColor(crop_square(img, Hb, fi, ri), cv2.COLOR_BGR2RGB))
-                ys.append(CLASSES.index(piece_at(lab[clip], fi, ri)))
-                clips.append(int(clip[4:]))
-                names.append(f'{f}:{"abcdefgh"[fi]}{ri + 1}')
-    x = np.stack(xs); y = np.array(ys, np.uint8); c = np.array(clips, np.int32)
-    np.savez_compressed(out, x=x, y=y, clip=c, name=np.array(names))
-    print(x.shape, np.bincount(y, minlength=13))
+                w.add(cv2.cvtColor(crop_square(img, Hb, fi, ri), cv2.COLOR_BGR2RGB),
+                      CLASSES.index(piece_at(lab[clip], fi, ri)), int(clip[4:]), f'{f}:{"abcdefgh"[fi]}{ri + 1}')
+    n = w.close()
+    print(n, 'crops from', len(kept), 'frames', np.bincount(cropset.load(out)['y'], minlength=13))

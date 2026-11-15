@@ -6,3 +6,6 @@ DerivedData/
 session
 __pycache__/
 tools/training/
+tools/work/
+tools/training3/
+tools/set_diff/

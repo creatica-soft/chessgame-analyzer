@@ -469,22 +469,29 @@ enum BoardFinder {
     /// Of the bases one shear away, the one whose cells' middles alternate light and dark: in the
     /// board's own basis each middle lies inside a square, in a sheared one on a square's edge.
     static func chooseBasis(_ H: Projective, _ lat: [(Int, Int)], _ grey: [Float], _ w: Int, _ h: Int) -> Projective {
-        let lo = (lat.map(\.0).min()!, lat.map(\.1).min()!), hi = (lat.map(\.0).max()!, lat.map(\.1).max()!)
+        guard !lat.isEmpty else { return H }
+        // Judged on the cells all four of whose corners were found: they are on the board. The
+        // lattice's whole span also takes in stray points off the board, whose cells would swamp it.
+        let found = Set(lat.map { $0.0 * 4096 + $0.1 })
+        var cells = lat.filter { found.contains(($0.0 + 1) * 4096 + $0.1) && found.contains($0.0 * 4096 + $0.1 + 1)
+            && found.contains(($0.0 + 1) * 4096 + $0.1 + 1) }
+        if cells.count < 6 {
+            let lo = (lat.map(\.0).min()!, lat.map(\.1).min()!), hi = (lat.map(\.0).max()!, lat.map(\.1).max()!)
+            cells = ((lo.0 - 1)...hi.0).flatMap { i in ((lo.1 - 1)...hi.1).map { (i, $0) } }
+        }
         var best: (Double, Projective) = (-1, H)
         for T in steps {
             let M = H * T
             guard let Ti = T.inverse else { continue }
             var odd: [Float] = [], even: [Float] = []
-            for i in (lo.0 - 1)...hi.0 {
-                for j in (lo.1 - 1)...hi.1 {
-                    // The same image cell, named in the new basis; its middle there is sampled.
-                    let mid = Ti.map(Double(i) + 0.5, Double(j) + 0.5)
-                    let a = Double(mid.x).rounded(.down), b = Double(mid.y).rounded(.down)
-                    let c = M.map(a + 0.5, b + 0.5)
-                    let x = Int(c.x), y = Int(c.y)
-                    guard c.x >= 0, c.y >= 0, x < w, y < h else { continue }
-                    if (Int(a) + Int(b)) & 1 == 1 { odd.append(grey[y * w + x]) } else { even.append(grey[y * w + x]) }
-                }
+            for (i, j) in cells {
+                // The same image cell, named in the new basis; its middle there is sampled.
+                let mid = Ti.map(Double(i) + 0.5, Double(j) + 0.5)
+                let a = Double(mid.x).rounded(.down), b = Double(mid.y).rounded(.down)
+                let c = M.map(a + 0.5, b + 0.5)
+                let x = Int(c.x), y = Int(c.y)
+                guard c.x >= 0, c.y >= 0, x < w, y < h else { continue }
+                if (Int(a) + Int(b)) & 1 == 1 { odd.append(grey[y * w + x]) } else { even.append(grey[y * w + x]) }
             }
             guard odd.count + even.count >= 8, !odd.isEmpty, !even.isEmpty else { continue }
             let contrast = Double(abs(median(odd) - median(even)))
@@ -522,7 +529,10 @@ enum BoardFinder {
 
     /// The lattice corner (i0, j0) of the 8 x 8 block of squares that is the board.
     static func placeBoard(_ grey: [Float], _ w: Int, _ h: Int, _ H: Projective, _ lat: [(Int, Int)]) -> (Double, Double)? {
-        let lo = (lat.map(\.0).min()!, lat.map(\.1).min()!), hi = (lat.map(\.0).max()!, lat.map(\.1).max()!)
+        // A lattice fitted to no points at all (it happens, rarely) places nothing.
+        guard let i0 = lat.map(\.0).min(), let j0 = lat.map(\.1).min(),
+              let i1 = lat.map(\.0).max(), let j1 = lat.map(\.1).max() else { return nil }
+        let lo = (i0, j0), hi = (i1, j1)
         guard lo.0 - 2 <= hi.0 - 6, lo.1 - 2 <= hi.1 - 6 else { return nil }
         var best: (Double, (Double, Double))?
         for i0 in (lo.0 - 2)...(hi.0 - 6) {
@@ -562,7 +572,22 @@ enum BoardFinder {
                     }
                 }
                 let carry = ring.isEmpty ? 0 : max(0, ring.reduce(0, +) / Double(ring.count))
-                let score = Double(inside) + 10 * contrast / 255 - 20 * carry
+                // Every row and column of a board alternates light and dark, square to square. A
+                // block taking in a row of the board's wooden frame has a line that does not
+                // (pieces spoil single squares, which the medians shrug off, but not a whole line).
+                let lines: [[(Int, Int)]] = (1...8).map { y in (1...8).map { ($0, y) } } + (1...8).map { x in (1...8).map { (x, $0) } }
+                var flat = 0.0
+                for line in lines {
+                    var d: [Double] = []
+                    for k in 0..<7 {
+                        let (x, y) = line[k], (x2, y2) = line[k + 1]
+                        guard let p = v[y][x], let q = v[y2][x2] else { continue }
+                        let odd = ((x - 1) + (y - 1)) % 2 == 1
+                        d.append(Double(p - q) * (odd == (a > b) ? 1 : -1))
+                    }
+                    if d.count >= 4 { flat += max(0, 0.4 - d.reduce(0, +) / Double(d.count) / (contrast + 1e-6)) }
+                }
+                let score = Double(inside) + 10 * contrast / 255 - 20 * carry - 10 * flat
                 if best == nil || score > best!.0 { best = (score, (Double(i0), Double(j0))) }
             }
         }

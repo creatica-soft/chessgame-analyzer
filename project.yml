@@ -94,7 +94,7 @@ targets:
       - target: CreaticaEngine
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.creatica.chessanalyzer
+        PRODUCT_BUNDLE_IDENTIFIER: org.creatica.chess-analyzer
         PRODUCT_NAME: ChessAnalyzer
         SWIFT_VERSION: "6.0"
         SWIFT_INCLUDE_PATHS: $(SRCROOT)/EngineBridge/include

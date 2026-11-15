@@ -737,7 +737,7 @@
 					"-lc++",
 					"-ObjC",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.creatica.chessanalyzer;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.creatica.chess-analyzer";
 				PRODUCT_NAME = ChessAnalyzer;
 				SDKROOT = iphoneos;
 				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/EngineBridge/include";
@@ -868,7 +868,7 @@
 					"-lc++",
 					"-ObjC",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.creatica.chessanalyzer;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.creatica.chess-analyzer";
 				PRODUCT_NAME = ChessAnalyzer;
 				SDKROOT = iphoneos;
 				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/EngineBridge/include";

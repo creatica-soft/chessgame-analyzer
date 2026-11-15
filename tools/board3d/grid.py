@@ -13,6 +13,7 @@ import numpy as np
 import cv2
 
 WORK = 960  # longer side the search works at
+FLAT_WEIGHT = 10  # see block_score
 
 
 RING = np.arange(16) * (2 * np.pi / 16)
@@ -203,8 +204,14 @@ def choose_basis(H, lat, gray):
     seen corner-on has squares that look like flat diamonds, shorter across than along a side).
     The squares' colours can: in the board's basis each cell's middle lies inside one square, and
     cells alternate light and dark; in a sheared one the middles fall on the squares' edges."""
-    lo, hi = lat.min(0), lat.max(0)
-    cells = np.array([[i + 0.5, j + 0.5] for i in range(lo[0] - 1, hi[0] + 1) for j in range(lo[1] - 1, hi[1] + 1)], np.float32)
+    # Judged on the cells all four of whose corners were found: they are on the board. The
+    # lattice's whole span also takes in stray points off the board, whose cells would swamp it.
+    found = {(int(a), int(b)) for a, b in lat}
+    cells = np.array([[i + 0.5, j + 0.5] for i, j in found
+                      if (i + 1, j) in found and (i, j + 1) in found and (i + 1, j + 1) in found], np.float32)
+    if len(cells) < 6:
+        lo, hi = lat.min(0), lat.max(0)
+        cells = np.array([[i + 0.5, j + 0.5] for i in range(lo[0] - 1, hi[0] + 1) for j in range(lo[1] - 1, hi[1] + 1)], np.float32)
     h, w = gray.shape
     best = (-1, H)
     for T in STEPS:
@@ -247,42 +254,62 @@ def square_values(gray, H, i0, j0, n=10):
     return vals.reshape(n, n)
 
 
+def block_score(gray, H, lat, i0, j0):
+    """How well the 8x8 block of lattice squares from (i0, j0) fits a board: None if it is mostly
+    outside the picture, else (score, i0, j0, corners inside, contrast, carry, flat lines)."""
+    v = square_values(gray, H, i0, j0)
+    inner = v[1:9, 1:9]
+    if np.isnan(inner).mean() > 0.2:
+        return None
+    parity = (np.add.outer(np.arange(8), np.arange(8)) % 2).astype(bool)
+    a, b = np.nanmedian(inner[parity]), np.nanmedian(inner[~parity])
+    contrast = abs(a - b)
+    # Every row and column of a board alternates light and dark, square to square. A block taking
+    # in a row of the board's wooden frame has a line that does not (pieces standing on the
+    # squares spoil single squares, which the medians above shrug off, but not a whole line).
+    sign = np.where(parity, 1.0, -1.0) * (1.0 if a > b else -1.0)
+    lines = [inner[k, :] for k in range(8)] + [inner[:, k] for k in range(8)]
+    signs = [sign[k, :] for k in range(8)] + [sign[:, k] for k in range(8)]
+    flat = 0.0
+    for u, sg in zip(lines, signs):
+        d = (u[:-1] - u[1:]) * sg[:-1]
+        d = d[~np.isnan(d)]
+        if len(d) >= 4:
+            flat += max(0.0, 0.4 - float(np.mean(d)) / (contrast + 1e-6))
+    misfit = flat
+    # The X-corners found inside this block, out of the 49 there are.
+    corners_in = ((lat[:, 0] > i0) & (lat[:, 0] < i0 + 8) & (lat[:, 1] > j0) & (lat[:, 1] < j0 + 8)).sum()
+    # The ring of squares round it should not carry the pattern on; but not the far side, where
+    # pieces stand in front.
+    sides = {'L': [(0, k) for k in range(1, 9)], 'R': [(9, k) for k in range(1, 9)],
+             'T': [(k, 0) for k in range(1, 9)], 'B': [(k, 9) for k in range(1, 9)]}
+    centre = lambda x, y: cv2.perspectiveTransform(np.array([[[i0 - 1 + x + 0.5, j0 - 1 + y + 0.5]]], np.float32), H)[0, 0, 1]
+    far = min(sides, key=lambda k: np.mean([centre(x, y) for x, y in sides[k]]))
+    ring = []
+    for side, cells in sides.items():
+        if side == far:
+            continue
+        for (x, y) in cells:
+            val = v[y, x]
+            if np.isnan(val):
+                continue
+            expect_a = ((x - 1) + (y - 1)) % 2 == 1
+            ring.append((val - (a + b) / 2) / ((a - b) / 2 + 1e-6) * (1 if expect_a else -1))
+    carry = max(0.0, np.mean(ring)) if ring else 0.0
+    score = corners_in + 10 * contrast / 255 - 20 * carry - FLAT_WEIGHT * misfit
+    return score, i0, j0, corners_in, contrast, carry, misfit
+
+
 def place_board(gray, H, lat):
     """The 8x8 block of lattice squares that is the board: corners at lattice (i0, j0)..(i0+8, j0+8)."""
     lo, hi = lat.min(0), lat.max(0)
-    best = (-1e9, None)
+    best = None
     for i0 in range(lo[0] - 2, hi[0] - 5):
         for j0 in range(lo[1] - 2, hi[1] - 5):
-            v = square_values(gray, H, i0, j0)
-            inner = v[1:9, 1:9]
-            if np.isnan(inner).mean() > 0.2:
-                continue
-            parity = (np.add.outer(np.arange(8), np.arange(8)) % 2).astype(bool)
-            a, b = np.nanmedian(inner[parity]), np.nanmedian(inner[~parity])
-            contrast = abs(a - b)
-            # The X-corners found inside this block, out of the 49 there are.
-            corners_in = ((lat[:, 0] > i0) & (lat[:, 0] < i0 + 8) & (lat[:, 1] > j0) & (lat[:, 1] < j0 + 8)).sum()
-            # The ring of squares round it should not carry the pattern on.
-            # The ring of squares round it, but not the far side, where pieces stand in front.
-            sides = {'L': [(0, k) for k in range(1, 9)], 'R': [(9, k) for k in range(1, 9)],
-                     'T': [(k, 0) for k in range(1, 9)], 'B': [(k, 9) for k in range(1, 9)]}
-            centre = lambda x, y: cv2.perspectiveTransform(np.array([[[i0 - 1 + x + 0.5, j0 - 1 + y + 0.5]]], np.float32), H)[0, 0, 1]
-            far = min(sides, key=lambda k: np.mean([centre(x, y) for x, y in sides[k]]))
-            ring = []
-            for side, cells in sides.items():
-                if side == far:
-                    continue
-                for (x, y) in cells:
-                    val = v[y, x]
-                    if np.isnan(val):
-                        continue
-                    expect_a = ((x - 1) + (y - 1)) % 2 == 1
-                    ring.append((val - (a + b) / 2) / ((a - b) / 2 + 1e-6) * (1 if expect_a else -1))
-            carry = max(0.0, np.mean(ring)) if ring else 0.0
-            score = corners_in + 10 * contrast / 255 - 20 * carry
-            if score > best[0]:
-                best = (score, (i0, j0, corners_in, contrast, carry))
-    return best[1]
+            s = block_score(gray, H, lat, i0, j0)
+            if s is not None and (best is None or s[0] > best[0]):
+                best = s
+    return None if best is None else best[1:6]
 
 
 def plausible(q):
@@ -310,7 +337,7 @@ def find_board(image, ring=False):
     gray = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
     pts = xcorners(gray, ring=ring)
     H, lat = fit_lattice(pts, gray)
-    if H is None:
+    if H is None or len(lat) == 0:
         return None, pts / k, None
     placed = place_board(gray, H, lat)
     if placed is None:

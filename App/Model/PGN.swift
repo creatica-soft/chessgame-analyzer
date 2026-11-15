@@ -192,7 +192,7 @@ enum PGNFile {
     static var types: [UTType] {
         var types: [UTType] = []
         if let system = UTType(filenameExtension: "pgn") { types.append(system) }
-        if let declared = UTType("org.creatica.chessanalyzer.pgn"), !types.contains(declared) { types.append(declared) }
+        if let declared = UTType("org.creatica.chess-analyzer.pgn"), !types.contains(declared) { types.append(declared) }
         return types + [.plainText]
     }
 
