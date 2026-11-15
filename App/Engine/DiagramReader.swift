@@ -739,17 +739,7 @@ extension DiagramReader.Reading {
     /// En passant squares the diagram allows with `sideToMove` to play: behind an enemy pawn that
     /// could just have advanced two squares, when a pawn of `sideToMove` stands beside it.
     func possibleEnPassant(sideToMove: PieceColor) -> [Square] {
-        let them = sideToMove.opposite
-        // The rank the pawn reached, the square it passed, and where it came from.
-        let (rank, passed, from) = them == .black ? (4, 5, 6) : (3, 2, 1)
-        return (0..<8).compactMap { file -> Square? in
-            guard pieces[Square.at(file: file, rank: rank)] == Piece(them, .pawn),
-                  pieces[Square.at(file: file, rank: passed)] == nil,
-                  pieces[Square.at(file: file, rank: from)] == nil,
-                  [file - 1, file + 1].contains(where: { (0..<8).contains($0) && pieces[Square.at(file: $0, rank: rank)] == Piece(sideToMove, .pawn) })
-            else { return nil }
-            return Square.at(file: file, rank: passed)
-        }
+        Position.possibleEnPassant(for: sideToMove) { pieces[$0] }
     }
 
     /// The position as the diagram shows it, with what a diagram cannot show given: who is to

@@ -190,3 +190,25 @@ struct Position: Sendable, Hashable {
         enPassant = nil
     }
 }
+
+extension Position {
+    /// En passant squares the pieces allow with `side` to move: behind an enemy pawn that could
+    /// just have advanced two squares, when a pawn of `side` stands beside it.
+    func possibleEnPassant(for side: PieceColor) -> [Square] {
+        Self.possibleEnPassant(for: side) { self[$0] }
+    }
+
+    static func possibleEnPassant(for side: PieceColor, _ piece: (Square) -> Piece?) -> [Square] {
+        let them = side.opposite
+        // The rank the pawn reached, the square it passed, and where it came from.
+        let (rank, passed, from) = them == .black ? (4, 5, 6) : (3, 2, 1)
+        return (0..<8).compactMap { file -> Square? in
+            guard piece(Square.at(file: file, rank: rank)) == Piece(them, .pawn),
+                  piece(Square.at(file: file, rank: passed)) == nil,
+                  piece(Square.at(file: file, rank: from)) == nil,
+                  [file - 1, file + 1].contains(where: { (0..<8).contains($0) && piece(Square.at(file: $0, rank: rank)) == Piece(side, .pawn) })
+            else { return nil }
+            return Square.at(file: file, rank: passed)
+        }
+    }
+}

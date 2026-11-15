@@ -17,6 +17,7 @@
 		244F9B36ED991D916CC18A1D /* TextRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA9D22697E2F15CF1536FD20 /* TextRecognizer.swift */; };
 		25BF94C87058471E01033B23 /* Position.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB25E0683A83F5BC8E6BE5C1 /* Position.swift */; };
 		2617E35EE2DBBC9FDD1B5921 /* evaluate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E50BB1D1F6B041912115380 /* evaluate.cpp */; };
+		26FFED4EEB0FD248F7125EF7 /* LiveBoardReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170CF01CFFF4124405F3F413 /* LiveBoardReader.swift */; };
 		278D010EC4B985930552AE18 /* ChessAnalyzerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B4CAC4B6E14CE12D491C1E4 /* ChessAnalyzerApp.swift */; };
 		288EF1793C6ED0DEE06F6B8E /* BoardReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 333C3EEC1414A2480EC2D533 /* BoardReader.swift */; };
 		28B5D73D26131CEFF6F29C3A /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D5E0969D1A8D79675D02C16 /* RootView.swift */; };
@@ -50,6 +51,7 @@
 		92B422FA92FAF7C343872FE4 /* BoardReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4176B4D1D8DA68CDA8E4AEE /* BoardReaderTests.swift */; };
 		9809820C37327967A3ED0D87 /* creatica_ab.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6BC2BDA91F82B40D73CB1259 /* creatica_ab.cpp */; settings = {COMPILER_FLAGS = "-Dmain=creatica_ab_main"; }; };
 		984D32861B69A9113C3EEF56 /* DiagramViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A28B9FA87E8CF9EA119137 /* DiagramViews.swift */; };
+		A16E34711839568B975763FD /* LiveBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5AD49F7638F4316E7C3CCF /* LiveBoardView.swift */; };
 		A2E342B0BE9B027412011844 /* CreaticaBridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B71C9FDEFE6AB1083A88B40 /* CreaticaBridge.cpp */; };
 		B1AFC3477FA84E66B5F52D69 /* bitboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CCCEA10B875203814199D1 /* bitboard.cpp */; };
 		BD880E9A5CE225577BF90712 /* UCI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E598A51DF41120BB6854AA8 /* UCI.swift */; };
@@ -112,6 +114,7 @@
 		09F217E4D6E44E0964BEC200 /* move.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = move.cpp; sourceTree = "<group>"; };
 		0E50BB1D1F6B041912115380 /* evaluate.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = evaluate.cpp; sourceTree = "<group>"; };
 		11CCCEA10B875203814199D1 /* bitboard.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bitboard.cpp; sourceTree = "<group>"; };
+		170CF01CFFF4124405F3F413 /* LiveBoardReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBoardReader.swift; sourceTree = "<group>"; };
 		18EDCB6DA938D6233B30F114 /* GamesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamesView.swift; sourceTree = "<group>"; };
 		1968D526A92E3C2D0152064F /* PiecePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiecePalette.swift; sourceTree = "<group>"; };
 		19DF7BFE3CBEF8A44B4F0255 /* AnalysisPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisPanel.swift; sourceTree = "<group>"; };
@@ -150,6 +153,7 @@
 		A37E7384845811442E28C349 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 		AA9D22697E2F15CF1536FD20 /* TextRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextRecognizer.swift; sourceTree = "<group>"; };
 		B54BE0E3723719286D4D4895 /* GameAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameAnalysis.swift; sourceTree = "<group>"; };
+		BF5AD49F7638F4316E7C3CCF /* LiveBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBoardView.swift; sourceTree = "<group>"; };
 		C924740262EF9F8CD2A0B2CB /* DiagramTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagramTests.swift; sourceTree = "<group>"; };
 		CC9539CE426A21C361490A5D /* nnue_accumulator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = nnue_accumulator.cpp; sourceTree = "<group>"; };
 		CD3C7A37A73525DC20AD352E /* PGN.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PGN.swift; sourceTree = "<group>"; };
@@ -279,6 +283,7 @@
 				04A600A175630710223A2D56 /* ClipboardReader.swift */,
 				D60DF988EE633953CBC5E07A /* DiagramReader.swift */,
 				62E0B821B45003A75ED77C5A /* EngineService.swift */,
+				170CF01CFFF4124405F3F413 /* LiveBoardReader.swift */,
 				AA9D22697E2F15CF1536FD20 /* TextRecognizer.swift */,
 			);
 			path = Engine;
@@ -305,6 +310,7 @@
 				64A28B9FA87E8CF9EA119137 /* DiagramViews.swift */,
 				18EDCB6DA938D6233B30F114 /* GamesView.swift */,
 				A37E7384845811442E28C349 /* GameView.swift */,
+				BF5AD49F7638F4316E7C3CCF /* LiveBoardView.swift */,
 				1968D526A92E3C2D0152064F /* PiecePalette.swift */,
 				985C1EC4874DE2B1781F949B /* PositionSheet.swift */,
 				ECDA0E551B88A76B7230E6F0 /* PositionView.swift */,
@@ -566,6 +572,8 @@
 				4B6AC17B3C7664A439F6272B /* GameTextReader.swift in Sources */,
 				3BA7BA5BB1DAE219ACCF037C /* GameView.swift in Sources */,
 				0BDBE8C9A0245CA6EAC1CBB7 /* GamesView.swift in Sources */,
+				26FFED4EEB0FD248F7125EF7 /* LiveBoardReader.swift in Sources */,
+				A16E34711839568B975763FD /* LiveBoardView.swift in Sources */,
 				48A599668058774E561642B5 /* PGN.swift in Sources */,
 				6B19E22755FBD74A71764AA7 /* Piece.swift in Sources */,
 				7E569576999CB012A21230DC /* PieceClassifier.mlpackage in Sources */,
@@ -714,7 +722,7 @@
 				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Chess Analyzer";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.board-games";
-				INFOPLIST_KEY_NSCameraUsageDescription = "The camera is used to read printed chess games and diagrams, on the phone.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "The camera is used to read chess boards, diagrams and printed games, on the phone.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -846,7 +854,7 @@
 				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Chess Analyzer";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.board-games";
-				INFOPLIST_KEY_NSCameraUsageDescription = "The camera is used to read printed chess games and diagrams, on the phone.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "The camera is used to read chess boards, diagrams and printed games, on the phone.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

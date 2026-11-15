@@ -102,7 +102,7 @@ struct AnalysisPanel: View {
             break
         }
         if model.awaitingCheck {
-            return Notice(text: "Analysis starts when the board matches the picture and you tap Done.",
+            return Notice(text: "Analysis starts when the board matches the picture and you choose who is to move.",
                           symbol: "checklist", tint: .secondary)
         }
         if let reason = model.pauseReason {

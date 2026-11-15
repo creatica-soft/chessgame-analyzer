@@ -49,4 +49,43 @@ struct BoardReaderTests {
         #expect(wrong.count <= 1)
         #expect(reading.kind == .board)
     }
+
+    /// Frames combined: named from either dark corner, they are lined up with each other, and the
+    /// reading settles on the position once it has held for a few frames.
+    @Test func liveReadingSettles() throws {
+        let frame = Self.frames[0]
+        let photo = try #require(DiagramReader.upright(Self.photo(frame.name)))
+        let read = try BoardReader.read(frame: photo)
+        var live = LiveBoardReader()
+        for i in 0..<6 {
+            #expect(live.add(i % 2 == 0 ? read : read.turned) == .added)
+        }
+        #expect(live.isSettled)
+        let reading = try live.reading()
+        let expected = try Position(fen: frame.fen + " w - - 0 1")
+        #expect((0..<64).filter { reading.pieces[$0] != expected[$0] }.count <= 1)
+        // A frame of another position altogether is left out, until several in a row restart it.
+        let other = try BoardReader.read(frame: #require(DiagramReader.upright(Self.photo("board-9137"))))
+        #expect(live.add(other) == .rejected)
+        for _ in 0..<2 { live.add(other) }
+        #expect(live.add(other) == .restarted)
+    }
+
+    /// A frame on its side (the phone held sideways, the frame not turned by it) is turned upright
+    /// from the board itself, the far side to the top, and read as the upright frame is.
+    @Test(arguments: [1, 2, 3])
+    func readsAFrameOnItsSide(_ quarterTurns: Int) throws {
+        for frame in Self.frames.prefix(2) {
+            let photo = try #require(DiagramReader.upright(Self.photo(frame.name)))
+            let sideways = try #require(BoardReader.rotated(photo, quarterTurns: quarterTurns))
+            #expect(BoardReader.uprightTurns(try #require(BoardFinder.find(photo))) == 0)
+            let read = try BoardReader.read(frame: sideways)
+            #expect(read.turns == (4 - quarterTurns) % 4, "\(frame.name)")
+            var live = LiveBoardReader()
+            live.add(read)
+            let reading = try live.reading()
+            let expected = try Position(fen: frame.fen + " w - - 0 1")
+            #expect((0..<64).filter { reading.pieces[$0] != expected[$0] }.count <= 1, "\(frame.name)")
+        }
+    }
 }

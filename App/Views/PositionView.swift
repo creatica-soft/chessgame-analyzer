@@ -18,6 +18,9 @@ struct PositionView: View {
     @State private var corners: CornerJob?
     /// What the camera or the photo picker is reading: a diagram or a real board.
     @State private var photoKind = DiagramReader.Reading.Kind.diagram
+    @State private var showingLive = false
+    /// A movie read in place of the camera by the live reading (debug).
+    @State private var liveMovie: URL?
 
     private struct CornerJob: Identifiable {
         let id = UUID()
@@ -79,6 +82,13 @@ struct PositionView: View {
                 CameraPicker { photo in Task { await read(photo, photoKind) } }
                     .ignoresSafeArea()
             }
+            .fullScreenCover(isPresented: $showingLive) {
+                LiveBoardView(movie: liveMovie) { reading, image in
+                    ImportLog.save(text: "", images: [image], source: "board-live")
+                    showingPicture = false
+                    model.loadDiagram(reading)
+                }
+            }
             .photosPicker(isPresented: $showingPhotoPicker, selection: $photoItem, matching: .images)
             .onChange(of: photoItem) { loadPhoto() }
             .overlay {
@@ -103,6 +113,13 @@ struct PositionView: View {
                 let args = ProcessInfo.processInfo.arguments
                 // A path not starting with / is in the app's Documents (as Imports/<stamp>/page1.jpg).
                 let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].path
+                // -demoLiveFile PATH: the live reading, from that movie in place of the camera.
+                if let i = args.firstIndex(of: "-demoLiveFile"), i + 1 < args.count {
+                    let path = args[i + 1].hasPrefix("/") ? args[i + 1] : documents + "/" + args[i + 1]
+                    liveMovie = URL(fileURLWithPath: path)
+                    showingLive = true
+                    return
+                }
                 for (flag, kind) in [("-demoDiagramFile", DiagramReader.Reading.Kind.diagram), ("-demoBoardFile", .board)] {
                     guard let i = args.firstIndex(of: flag), i + 1 < args.count,
                           let image = UIImage(contentsOfFile: args[i + 1].hasPrefix("/") ? args[i + 1] : documents + "/" + args[i + 1])
@@ -192,6 +209,7 @@ struct PositionView: View {
             Menu("Position", systemImage: "ellipsis.circle") {
                 Section("Read a Real Board") {
                     if CameraPicker.isAvailable {
+                        Button("Live Camera…", systemImage: "camera.viewfinder") { liveMovie = nil; showingLive = true }
                         Button("Take Photo…", systemImage: "camera") { photoKind = .board; showingCamera = true }
                     }
                     Button("Choose Photo…", systemImage: "photo") { photoKind = .board; showingPhotoPicker = true }

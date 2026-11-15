@@ -31,9 +31,38 @@ enum BoardReader {
     }
 
     static func read(_ photo: CGImage, quad given: DiagramReader.Quad? = nil) throws -> DiagramReader.Reading {
-        let scale = cropSource / Double(max(photo.width, photo.height))
-        guard let source = RGBImage(photo, scale: min(1, scale)) else { throw DiagramReader.ReadError.noImage }
-        let k = Double(source.width) / Double(photo.width)        // photo pixels to source pixels
+        var frame = try read(frame: photo, quad: given)
+        // Which way round: a1 is dark, but a board turned half round looks the same. The pieces
+        // decide: White's pawns and king stand nearer rank 1 than Black's in nearly every position.
+        if given == nil, whiteStandsHigh(frame.probabilities) { frame = frame.turned }
+        return try reading(frame)
+    }
+
+    /// One photo read as far as the classifier goes: the board's corners and, per square, the
+    /// probability of each piece; which way round the board stands is left open (a1 is a dark
+    /// corner, the one the finder named), for the caller to settle, perhaps over several frames.
+    struct Frame: @unchecked Sendable {
+        let photo: CGImage
+        /// a1, h1, h8, a8 in the photo's pixels.
+        let corners: [CGPoint]
+        /// a1 first (square = rank * 8 + file), classes as `DiagramReader.classes`.
+        let probabilities: [[Double]]
+        /// Quarter turns clockwise the photo given was turned by to stand upright: `photo` is the
+        /// photo turned.
+        var turns = 0
+
+        /// The same board named from the opposite corner: a1 where h8 was.
+        var turned: Frame {
+            Frame(photo: photo, corners: [corners[2], corners[3], corners[0], corners[1]],
+                  probabilities: Array(probabilities.reversed()), turns: turns)
+        }
+    }
+
+    static func read(frame photo: CGImage, quad given: DiagramReader.Quad? = nil) throws -> Frame {
+        try read(frame: photo, quad: given, mayTurn: true)
+    }
+
+    private static func read(frame photo: CGImage, quad given: DiagramReader.Quad?, mayTurn: Bool) throws -> Frame {
         // a1, h1, h8, a8 in the photo.
         let corners: [CGPoint]
         if let given {
@@ -41,7 +70,19 @@ enum BoardReader {
         } else {
             guard let found = BoardFinder.find(photo) else { throw DiagramReader.ReadError.noBoard }
             corners = found
+            // The pieces must rise up the picture, as in the training frames: a photo taken with
+            // the phone on its side (and not turned by it, as when it points down at a table) is
+            // turned first, so that the board's far side is at the top.
+            let turns = uprightTurns(found)
+            if mayTurn, turns != 0, let turned = rotated(photo, quarterTurns: turns) {
+                var frame = try read(frame: turned, quad: nil, mayTurn: false)
+                frame.turns = turns
+                return frame
+            }
         }
+        let scale = cropSource / Double(max(photo.width, photo.height))
+        guard let source = RGBImage(photo, scale: min(1, scale)) else { throw DiagramReader.ReadError.noImage }
+        let k = Double(source.width) / Double(photo.width)        // photo pixels to source pixels
         let model = try classifier()
         // The board as found, and the same grid a square off each way: a grid placed a square out
         // reads as nonsense (many unsure squares), which the board itself does not.
@@ -80,13 +121,14 @@ enum BoardReader {
                 probabilities = try classify(crops(source, board), model: model)
             }
         }
-        // Which way round: a1 is dark, but a board turned half round looks the same. The pieces
-        // decide: White's pawns and king stand nearer rank 1 than Black's in nearly every position.
-        if given == nil, whiteStandsHigh(probabilities) {
-            probabilities = Array(probabilities.reversed())
-            board = board * Projective(m: [-1, 0, 8, 0, -1, 8, 0, 0, 1])
-        }
-        let p = DiagramReader.constrain(probabilities)
+        let inPhoto = [board.map(0, 0), board.map(8, 0), board.map(8, 8), board.map(0, 8)].map { CGPoint(x: $0.x / k, y: $0.y / k) }
+        return Frame(photo: photo, corners: inPhoto, probabilities: probabilities)
+    }
+
+    /// The reading of a frame, the board taken the way round it is named; `probabilities` in place
+    /// of the frame's own (as several frames' together).
+    static func reading(_ frame: Frame, probabilities: [[Double]]? = nil) throws -> DiagramReader.Reading {
+        let p = DiagramReader.constrain(probabilities ?? frame.probabilities)
         var pieces = [Piece?](repeating: nil, count: 64)
         var uncertain = [Bool](repeating: false, count: 64)
         for sq in 0..<64 {
@@ -96,18 +138,59 @@ enum BoardReader {
             uncertain[sq] = DiagramReader.isDoubtful(row)
         }
         // The board's corners in the photo: a8 top left, h8 top right, h1, a1.
-        let h = board
-        func photoPoint(_ f: Double, _ r: Double) -> CGPoint {
-            let q = h.map(f, r)
-            return CGPoint(x: q.x / k, y: q.y / k)
-        }
-        let quad = DiagramReader.Quad(topLeft: photoPoint(0, 8), topRight: photoPoint(8, 8),
-                                      bottomRight: photoPoint(8, 0), bottomLeft: photoPoint(0, 0))
+        let c = frame.corners
+        let quad = DiagramReader.Quad(topLeft: c[3], topRight: c[2], bottomRight: c[1], bottomLeft: c[0])
         // The board seen from above, to compare with: the pieces lean, but the squares line up.
-        guard let flat = DiagramReader.straighten(photo, quad) else { throw DiagramReader.ReadError.noBoard }
+        guard let flat = DiagramReader.straighten(frame.photo, quad) else { throw DiagramReader.ReadError.noBoard }
         return DiagramReader.Reading(pieces: pieces, uncertain: uncertain, board: flat.image, quad: quad,
-                                     flipped: false, photo: photo, kind: .board)
+                                     flipped: false, photo: frame.photo, kind: .board)
     }
+
+    /// Quarter turns clockwise that stand a photo of the board with these corners upright: with
+    /// the board's far side at the top. The far side is the one the board shrinks towards, found
+    /// from how the size of a square changes across the picture; 0 when it hardly changes (a board
+    /// seen from straight above).
+    static func uprightTurns(_ corners: [CGPoint]) -> Int {
+        let board = Projective(board: corners)
+        // At some points of the board: where it is in the picture, and how big a square is there.
+        var rows: [(x: Double, y: Double, size: Double)] = []
+        for (f, r) in [(1.0, 1.0), (7, 1), (7, 7), (1, 7), (4, 4)] {
+            let p = board.map(f, r), u = board.map(f + 0.1, r), v = board.map(f, r + 0.1)
+            let area = abs((u.x - p.x) * (v.y - p.y) - (u.y - p.y) * (v.x - p.x)) * 100
+            rows.append((p.x, p.y, area.squareRoot()))
+        }
+        // Size = a + b x + c y, fitted; it shrinks towards -(b, c).
+        let n = Double(rows.count)
+        let mx = rows.map(\.x).reduce(0, +) / n, my = rows.map(\.y).reduce(0, +) / n
+        let ms = rows.map(\.size).reduce(0, +) / n
+        var sxx = 0.0, sxy = 0.0, syy = 0.0, sxs = 0.0, sys = 0.0
+        for row in rows {
+            let x = row.x - mx, y = row.y - my, s = row.size - ms
+            sxx += x * x; sxy += x * y; syy += y * y; sxs += x * s; sys += y * s
+        }
+        let det = sxx * syy - sxy * sxy
+        guard det > 0 else { return 0 }
+        let b = (syy * sxs - sxy * sys) / det, c = (sxx * sys - sxy * sxs) / det
+        // How much a square's size changes across the board, as a share of its size.
+        let span = hypot(corners[2].x - corners[0].x, corners[2].y - corners[0].y)
+        guard hypot(b, c) * span / ms > 0.25 else { return 0 }
+        let (ux, uy) = (-b, -c)                 // towards the far side
+        if abs(uy) >= abs(ux) { return uy < 0 ? 0 : 2 }
+        return ux > 0 ? 3 : 1                   // far side right: a quarter turn anticlockwise
+    }
+
+    /// `image` turned `quarterTurns` quarter turns clockwise.
+    static func rotated(_ image: CGImage, quarterTurns: Int) -> CGImage? {
+        let t = (quarterTurns % 4 + 4) % 4
+        guard t != 0 else { return image }
+        // Core Image's y axis points up: clockwise is a negative angle.
+        let ci = CIImage(cgImage: image).transformed(by: CGAffineTransform(rotationAngle: -Double(t) * .pi / 2))
+        let moved = ci.transformed(by: CGAffineTransform(translationX: -ci.extent.minX, y: -ci.extent.minY))
+        let extent = CGRect(x: 0, y: 0, width: moved.extent.width.rounded(), height: moved.extent.height.rounded())
+        return rotationContext.createCGImage(moved, from: extent)
+    }
+
+    private static let rotationContext = CIContext(options: [.workingColorSpace: NSNull()])
 
     /// Whether White's pawns and king read as standing further up the board (towards rank 8)
     /// than Black's: the board is the other way round.

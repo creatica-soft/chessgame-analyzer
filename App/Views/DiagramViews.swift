@@ -9,48 +9,113 @@ struct DiagramCheckBar: View {
     @Binding var showingPicture: Bool
     /// Opens the corners for setting by hand.
     let onAdjust: () -> Void
+    /// The en passant square chosen, if the last move may have been a pawn's double step.
+    @State private var enPassant: Square?
+
+    private static let castling: [(right: CastlingRights, side: PieceColor, label: String)] = [
+        (.whiteKingside, .white, "O-O"), (.whiteQueenside, .white, "O-O-O"),
+        (.blackKingside, .black, "O-O"), (.blackQueenside, .black, "O-O-O"),
+    ]
 
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
-            Button { showingPicture.toggle() } label: {
-                DiagramPicture(reading: reading, boardFlipped: model.flipped)
-                    .frame(width: 48, height: 48)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-                    .overlay(RoundedRectangle(cornerRadius: 4)
-                        .stroke(showingPicture ? Color.accentColor : Color.secondary.opacity(0.4),
-                                lineWidth: showingPicture ? 2 : 1))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(showingPicture ? "Show the board" : "Show the picture")
-            VStack(alignment: .leading, spacing: 2) {
-                status
-                Text(showingPicture ? "Showing the picture: tap it to go back."
-                                    : "Tap the picture to compare. Check whose move it is, and castling.")
-                    .font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            VStack(spacing: 6) {
-                Button("Done") {
-                    showingPicture = false
-                    model.closeDiagram()
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center, spacing: 10) {
+                Button { showingPicture.toggle() } label: {
+                    DiagramPicture(reading: reading, boardFlipped: model.flipped)
+                        .frame(width: 48, height: 48)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .overlay(RoundedRectangle(cornerRadius: 4)
+                            .stroke(showingPicture ? Color.accentColor : Color.secondary.opacity(0.4),
+                                    lineWidth: showingPicture ? 2 : 1))
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
+                .buttonStyle(.plain)
+                .accessibilityLabel(showingPicture ? "Show the board" : "Show the picture")
+                VStack(alignment: .leading, spacing: 2) {
+                    status
+                    Text(showingPicture ? "Showing the picture: tap it to go back."
+                                        : "Tap the picture to compare.")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 HStack(spacing: 14) {
                     if reading.photo != nil {
                         Button("Adjust Corners", systemImage: "crop", action: onAdjust)
                             .accessibilityHint("Set the board's corners in the picture by hand")
                     }
                     Button("Turn Round", systemImage: "arrow.up.arrow.down") { model.turnDiagramRound() }
-                        .accessibilityHint("The diagram was printed from the other side")
+                        .accessibilityHint("The board was seen from the other side")
                 }
                 .labelStyle(.iconOnly)
                 .controlSize(.small)
             }
+            gameState
         }
         .padding(8)
         .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    /// What a picture cannot show: castling still allowed, en passant, and who is to move; the
+    /// side to move chosen ends the check.
+    @ViewBuilder
+    private var gameState: some View {
+        // Castling the pieces allow, a row for each side; en passant squares likewise.
+        ForEach([PieceColor.white, .black], id: \.self) { side in
+            let rights = Self.castling.filter { $0.side == side && model.position.supports($0.right) }
+            let passing = model.position.possibleEnPassant(for: side)
+            if !rights.isEmpty || !passing.isEmpty {
+                HStack(spacing: 6) {
+                    Text(side == .white ? "White" : "Black")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .frame(width: 40, alignment: .leading)
+                    ForEach(rights, id: \.right.rawValue) { item in
+                        chip(item.label, on: model.position.effectiveCastling.contains(item.right)) {
+                            model.setCastling(item.right, !model.position.effectiveCastling.contains(item.right))
+                        }
+                        .accessibilityLabel("\(side == .white ? "White" : "Black") may castle \(item.label == "O-O" ? "kingside" : "queenside")")
+                    }
+                    ForEach(passing, id: \.self) { square in
+                        chip("e.p. \(square.algebraic)", on: enPassant == square) {
+                            enPassant = enPassant == square ? nil : square
+                        }
+                        .accessibilityLabel("\(side == .white ? "White" : "Black") may take en passant on \(square.algebraic): the last move was a pawn's double step")
+                    }
+                }
+            }
+        }
+        let white = model.isLegal(sideToMove: .white), black = model.isLegal(sideToMove: .black)
+        // An en passant square chosen says who is to move.
+        let forced: PieceColor? = enPassant.map { $0.rank == 5 ? .white : .black }
+        HStack(spacing: 8) {
+            Text("To move:").font(.subheadline)
+            sideButton(.white, enabled: white && forced != .black)
+            sideButton(.black, enabled: black && forced != .white)
+        }
+        if white != black, white || black {
+            Text(white ? "Black can't be to move: White's king would be in check."
+                       : "White can't be to move: Black's king would be in check.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private func sideButton(_ side: PieceColor, enabled: Bool) -> some View {
+        Button(side == .white ? "White" : "Black") {
+            showingPicture = false
+            model.finishCheck(sideToMove: side, enPassant: enPassant)
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.small)
+        .disabled(!enabled)
+    }
+
+    private func chip(_ label: String, on: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(label, systemImage: on ? "checkmark.circle.fill" : "circle")
+                .font(.caption)
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.small)
+        .tint(on ? .accentColor : .secondary)
     }
 
     @ViewBuilder

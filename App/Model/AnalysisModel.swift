@@ -96,10 +96,13 @@ final class AnalysisModel {
             EngineService.validationError(fen: reading.position(sideToMove: $0).fen) == nil
         }
         selectedSquare = nil
+        // Waiting for the check before the board changes: a search of the same position (a
+        // reading of the board already set up) is stopped too.
+        awaitingCheck = true
         change { $0 = reading.position(sideToMove: legal.count == 1 ? legal[0] : .white) }
+        engine.stop(.position)
         diagram = reading
         doubtful = Set(reading.doubtful)
-        awaitingCheck = true
         #if DEBUG
         fputs("diagram read: \(position.fen) doubtful \(reading.doubtful.map(\.algebraic))\n", stderr)
         #endif
@@ -136,6 +139,27 @@ final class AnalysisModel {
     func setSideToMove(_ color: PieceColor) {
         guard position.sideToMove != color else { return }
         change { $0.sideToMove = color; $0.enPassant = nil }
+    }
+
+    func setEnPassant(_ square: Square?) {
+        guard position.enPassant != square else { return }
+        change { $0.enPassant = square }
+    }
+
+    /// Whether `side` to move is a legal position with these pieces (the other king not in check).
+    func isLegal(sideToMove side: PieceColor) -> Bool {
+        var p = position
+        p.sideToMove = side
+        p.enPassant = nil
+        return EngineService.validationError(fen: p.fen) == nil
+    }
+
+    /// The reading checked, and what the picture cannot show given: who is to move, and the en
+    /// passant square if the last move was a pawn's double step. Analysis starts.
+    func finishCheck(sideToMove side: PieceColor, enPassant: Square?) {
+        setSideToMove(side)
+        setEnPassant(enPassant.flatMap { position.possibleEnPassant(for: side).contains($0) ? $0 : nil })
+        closeDiagram()
     }
 
     func setCastling(_ right: CastlingRights, _ on: Bool) {
