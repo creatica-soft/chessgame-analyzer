@@ -26,6 +26,7 @@
 		3BA7BA5BB1DAE219ACCF037C /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37E7384845811442E28C349 /* GameView.swift */; };
 		3C34AF8D8831960C10264872 /* ModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 399FFF7E25C64F61C71F4B79 /* ModelTests.swift */; };
 		3C538FDFF03E69D1DDF22B8B /* PositionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDA0E551B88A76B7230E6F0 /* PositionView.swift */; };
+		3EED2BF1C4596D7DBB356FC9 /* EngineBench.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE6E5D73AD199EF425B0B9D3 /* EngineBench.swift */; };
 		403B665823A1D0D0D0313C25 /* board.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4AA403DF2979A674F2A2D2E4 /* board.cpp */; };
 		408F8A9719FA138F737EED74 /* SquareClassifier.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = D51F90CE1C91D862FB1B2F17 /* SquareClassifier.mlpackage */; };
 		42FFF28D86E7A600905070CE /* engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08427A9FB44AF6D3464A762F /* engine.cpp */; };
@@ -66,7 +67,7 @@
 		E24CB00E893D301928EFCF21 /* GameAnalysisModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89BEE8B23277CB0B6F03693F /* GameAnalysisModel.swift */; };
 		E3DC2172CB0AE648DA75DEC7 /* EngineService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62E0B821B45003A75ED77C5A /* EngineService.swift */; };
 		E3EF37D10EE85F593CB4ABE2 /* ScanViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2689E81EF1359916F3CF20 /* ScanViews.swift */; };
-		E9FBD1FDFBF4BD18F7A91974 /* network.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26744203B817618F8D03F626 /* network.cpp */; };
+		E9FBD1FDFBF4BD18F7A91974 /* network.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26744203B817618F8D03F626 /* network.cpp */; settings = {COMPILER_FLAGS = "-fno-lto"; }; };
 		F17EC671287F08CF2D5DB74F /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45DB6B0468CE2FA7192274F5 /* BoardView.swift */; };
 		F27B5B630F0F6FB3C665BC3A /* full_threats.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 084F53B4FB849B1ADA29B419 /* full_threats.cpp */; };
 		FCA79B4518252066AC9FB810 /* pgn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9CF3D02A9CCCC601A8F66B73 /* pgn.cpp */; };
@@ -152,6 +153,7 @@
 		9CF3D02A9CCCC601A8F66B73 /* pgn.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pgn.cpp; sourceTree = "<group>"; };
 		A37E7384845811442E28C349 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 		AA9D22697E2F15CF1536FD20 /* TextRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextRecognizer.swift; sourceTree = "<group>"; };
+		AE6E5D73AD199EF425B0B9D3 /* EngineBench.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineBench.swift; sourceTree = "<group>"; };
 		B54BE0E3723719286D4D4895 /* GameAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameAnalysis.swift; sourceTree = "<group>"; };
 		BF5AD49F7638F4316E7C3CCF /* LiveBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBoardView.swift; sourceTree = "<group>"; };
 		C924740262EF9F8CD2A0B2CB /* DiagramTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagramTests.swift; sourceTree = "<group>"; };
@@ -282,6 +284,7 @@
 				333C3EEC1414A2480EC2D533 /* BoardReader.swift */,
 				04A600A175630710223A2D56 /* ClipboardReader.swift */,
 				D60DF988EE633953CBC5E07A /* DiagramReader.swift */,
+				AE6E5D73AD199EF425B0B9D3 /* EngineBench.swift */,
 				62E0B821B45003A75ED77C5A /* EngineService.swift */,
 				170CF01CFFF4124405F3F413 /* LiveBoardReader.swift */,
 				AA9D22697E2F15CF1536FD20 /* TextRecognizer.swift */,
@@ -439,6 +442,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 34DAF07722F38C08EBE6B881 /* Build configuration list for PBXNativeTarget "CreaticaEngine" */;
 			buildPhases = (
+				943D81C0BAFD0561E39D523D /* Check the engine profile is current */,
 				C60F589F76A83B63BA499256 /* CopyFiles */,
 				CA136B3D4DD2A3E9486A9295 /* Sources */,
 			);
@@ -511,6 +515,28 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		943D81C0BAFD0561E39D523D /* Check the engine profile is current */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Check the engine profile is current";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "[ \"$CONFIGURATION\" = Release ] || exit 0\nprofile=\"$LIBCHESS_DIR/CMakeFiles/pgo/creatica_ab.profdata\"\nfix=\"run 'make creatica_ab_profile' in $LIBCHESS_DIR\"\nif [ ! -f \"$profile\" ]; then echo \"error: no engine profile at $profile: $fix\"; exit 1; fi\ncd \"$LIBCHESS_DIR\"\nnewer=$(find creatica_ab.cpp uci_frontend.cpp tbprobe.c tbprobe.h board.cpp engine.cpp fen.cpp move.cpp \\\n             pgn.cpp tag.cpp zobrist-hash.cpp libchess.h uci_engine.h nnue \\\n             \\( -name '*.cpp' -o -name '*.h' -o -name '*.c' \\) -newer \"$profile\" 2>/dev/null | head -3)\nif [ -n \"$newer\" ]; then echo \"error: the engine profile is older than $(echo $newer | tr '\\n' ' '): $fix\"; exit 1; fi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		79483B53564FDFBCF9BF80E9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -566,6 +592,7 @@
 				8408D22D837570149B4062D8 /* ClipboardReader.swift in Sources */,
 				D0ECAC0840F65050A6F8F6AA /* DiagramReader.swift in Sources */,
 				984D32861B69A9113C3EEF56 /* DiagramViews.swift in Sources */,
+				3EED2BF1C4596D7DBB356FC9 /* EngineBench.swift in Sources */,
 				E3DC2172CB0AE648DA75DEC7 /* EngineService.swift in Sources */,
 				D955531D923915BD811DDEE1 /* GameAnalysis.swift in Sources */,
 				E24CB00E893D301928EFCF21 /* GameAnalysisModel.swift in Sources */,
@@ -907,6 +934,7 @@
 				OTHER_CFLAGS = (
 					"-march=armv8.2-a+dotprod",
 					"-funroll-loops",
+					"-fprofile-instr-use=$(LIBCHESS_DIR)/CMakeFiles/pgo/creatica_ab.profdata",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.creatica.CreaticaEngine;
 				SDKROOT = iphoneos;

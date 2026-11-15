@@ -181,6 +181,7 @@ struct GamesView: View {
         switch model.limit {
         case .depth(let d): "Creatica AB, depth \(d)"
         case .time(let s): "Creatica AB, \(s) s per position"
+        case .nodes(let n): "Creatica AB, \(n) nodes per position"
         case .infinite: "Creatica AB"
         }
     }

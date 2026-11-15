@@ -141,12 +141,15 @@ enum MoveText {
 enum SearchLimit: Sendable, Equatable {
     case time(seconds: Int)
     case depth(Int)
+    /// A fixed amount of work, for timing the engine (EngineBench).
+    case nodes(Int)
     case infinite
 
     var goCommand: String {
         switch self {
         case .time(let seconds): "go movetime \(seconds * 1000)"
         case .depth(let depth): "go depth \(depth)"
+        case .nodes(let nodes): "go nodes \(nodes)"
         case .infinite: "go infinite"
         }
     }

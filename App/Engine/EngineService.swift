@@ -120,6 +120,14 @@ final class EngineService {
         }
     }
 
+    /// Forgets what earlier searches learnt (the hash table), so that a search does the same work
+    /// whatever came before it: for timing the engine (EngineBench).
+    func newGame() {
+        halt()
+        send("ucinewgame")
+        send("isready")
+    }
+
     /// Stops `client`'s search, if the current one is its.
     func stop(_ client: Client) {
         guard owner == client else { return }

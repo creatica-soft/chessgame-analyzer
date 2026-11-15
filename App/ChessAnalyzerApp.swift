@@ -15,7 +15,11 @@ struct ChessAnalyzerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(engine: engine, positionModel: positionModel, gameModel: gameModel)
+            if EngineBench.requested {
+                EngineBench.View(engine: engine)
+            } else {
+                RootView(engine: engine, positionModel: positionModel, gameModel: gameModel)
+            }
         }
     }
 }
