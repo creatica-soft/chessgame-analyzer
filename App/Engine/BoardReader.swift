@@ -32,9 +32,10 @@ enum BoardReader {
 
     static func read(_ photo: CGImage, quad given: DiagramReader.Quad? = nil) throws -> DiagramReader.Reading {
         var frame = try read(frame: photo, quad: given)
-        // Which way round: a1 is dark, but a board turned half round looks the same. The pieces
+        // Which way round: a1 is dark, but a board turned half round looks the same (and from low
+        // at a side, with pieces hiding the squares, the colours may not tell at all). The pieces
         // decide: White's pawns and king stand nearer rank 1 than Black's in nearly every position.
-        if given == nil, whiteStandsHigh(frame.probabilities) { frame = frame.turned }
+        if given == nil { frame = frame.rotated(uprightTurn(frame.probabilities)) }
         return try reading(frame)
     }
 
@@ -52,9 +53,13 @@ enum BoardReader {
         var turns = 0
 
         /// The same board named from the opposite corner: a1 where h8 was.
-        var turned: Frame {
-            Frame(photo: photo, corners: [corners[2], corners[3], corners[0], corners[1]],
-                  probabilities: Array(probabilities.reversed()), turns: turns)
+        var turned: Frame { rotated(2) }
+
+        /// The same board named `k` quarter turns round: a1 where h1 was, for each turn.
+        func rotated(_ k: Int) -> Frame {
+            let k = ((k % 4) + 4) % 4
+            return Frame(photo: photo, corners: (0..<4).map { corners[($0 + k) % 4] },
+                         probabilities: BoardReader.rotated(probabilities, k), turns: turns)
         }
     }
 
@@ -65,11 +70,16 @@ enum BoardReader {
     private static func read(frame photo: CGImage, quad given: DiagramReader.Quad?, mayTurn: Bool) throws -> Frame {
         // a1, h1, h8, a8 in the photo.
         let corners: [CGPoint]
+        // A board the grid search found may be a square off; the network sees where the playing
+        // area ends, and a grid a square off can read a little surer than the board when pieces
+        // are hard to tell apart (gold from silver), so its board is kept as found.
+        var mayBeOff = false
         if let given {
             corners = [given.bottomLeft, given.bottomRight, given.topRight, given.topLeft]
         } else {
-            guard let found = BoardFinder.find(photo) else { throw DiagramReader.ReadError.noBoard }
+            guard let (found, byNetwork) = BoardFinder.locate(photo) else { throw DiagramReader.ReadError.noBoard }
             corners = found
+            mayBeOff = !byNetwork
             // The pieces must rise up the picture, as in the training frames: a photo taken with
             // the phone on its side (and not turned by it, as when it points down at a table) is
             // turned first, so that the board's far side is at the top.
@@ -100,7 +110,7 @@ enum BoardReader {
         }
         try consider(base)
         let doubtful = best!.probabilities.filter(DiagramReader.isDoubtful).count
-        if given == nil, doubtful >= 6 {
+        if mayBeOff, doubtful >= 6 {
             for dx in -1...1 {
                 for dy in -1...1 where dx != 0 || dy != 0 {
                     try consider(base.shifted(Double(dx), Double(dy)))
@@ -192,20 +202,37 @@ enum BoardReader {
 
     private static let rotationContext = CIContext(options: [.workingColorSpace: NSNull()])
 
-    /// Whether White's pawns and king read as standing further up the board (towards rank 8)
-    /// than Black's: the board is the other way round.
-    static func whiteStandsHigh(_ p: [[Double]]) -> Bool {
-        func meanRank(_ color: PieceColor) -> Double? {
+    /// Per-square probabilities (a1 first) of a board named `k` quarter turns round, as
+    /// `Frame.rotated`: the new a1 is the old h1, so new (file, rank) is old (7 - rank, file).
+    static func rotated(_ p: [[Double]], _ k: Int) -> [[Double]] {
+        var p = p
+        for _ in 0..<(((k % 4) + 4) % 4) {
+            let old = p
+            for r in 0..<8 { for f in 0..<8 { p[r * 8 + f] = old[f * 8 + 7 - r] } }
+        }
+        return p
+    }
+
+    /// The quarter turns (0...3, as `Frame.rotated`) that put White's pawns and king nearest
+    /// rank 1 and Black's nearest rank 8. A half turn is taken whenever White stands higher; a
+    /// quarter turn only when the two sides stand clearly apart along the ranks instead (two
+    /// files and more, and twice as far as along the files), as no game's pawns do, since the
+    /// squares' colours named the board otherwise.
+    static func uprightTurn(_ p: [[Double]]) -> Int {
+        func centre(_ color: PieceColor) -> (file: Double, rank: Double)? {
             let kinds = [Piece(color, .pawn), Piece(color, .king)].compactMap { DiagramReader.classes.firstIndex(of: $0) }
-            var weight = 0.0, sum = 0.0
+            var weight = 0.0, file = 0.0, rank = 0.0
             for sq in 0..<64 {
                 let w = kinds.map { p[sq][$0] }.reduce(0, +)
-                weight += w; sum += w * Double(sq / 8)
+                weight += w; file += w * Double(sq % 8); rank += w * Double(sq / 8)
             }
-            return weight > 0.5 ? sum / weight : nil
+            return weight > 0.5 ? (file / weight, rank / weight) : nil
         }
-        guard let white = meanRank(.white), let black = meanRank(.black) else { return false }
-        return white > black
+        guard let white = centre(.white), let black = centre(.black) else { return 0 }
+        // From White's pieces to Black's; turned so that it points up the ranks.
+        let df = black.file - white.file, dr = black.rank - white.rank
+        if abs(df) >= 2, abs(df) > 2 * abs(dr) { return df > 0 ? 3 : 1 }
+        return dr < 0 ? 2 : 0
     }
 
     // MARK: - Crops
@@ -262,13 +289,19 @@ enum BoardReader {
         }
     }
 
-    /// Per square (a1 first), the probability of each class in `DiagramReader.classes`.
+    /// Whether the pieces' sides are settled by their colours too (see `settleSides`), unless
+    /// BOARD_SIDES=classifier is set (for comparing the two).
+    static let sidesByColour = ProcessInfo.processInfo.environment["BOARD_SIDES"] != "classifier"
+
+    /// Per square (a1 first), the probability of each class in `DiagramReader.classes`: the
+    /// classifier's, the sides settled by the pieces' colours.
     static func classify(_ crops: MLMultiArray, model: MLModel) throws -> [[Double]] {
         let input = try MLDictionaryFeatureProvider(dictionary: ["crops": MLFeatureValue(multiArray: crops)])
         guard let out = try model.prediction(from: input).featureValue(for: "probabilities")?.multiArrayValue else {
             throw DiagramReader.ReadError.model("the classifier gave no answer")
         }
-        return (0..<64).map { i in (0..<13).map { out[[NSNumber(value: i), NSNumber(value: $0)]].doubleValue } }
+        let p = (0..<64).map { i in (0..<13).map { out[[NSNumber(value: i), NSNumber(value: $0)]].doubleValue } }
+        return sidesByColour ? settleSides(p, crops: crops) : p
     }
 }
 

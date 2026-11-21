@@ -21,6 +21,16 @@ The creatica_ab engine from [libchess](https://github.com/creatica-soft/libchess
   clearly less correcting later wins. Every guess is shown for review, and the recognised text
   can be corrected and read again. Loose text pasted from Live Text goes the same way.
 
+- **Diagrams and boards**: a position can be read from a diagram (a photo, screenshot or copied
+  picture of a printed or on-screen board) or from a real board, in a photo or live from the
+  camera. On a real board, a network trained on rendered boards (`BoardLocator`,
+  tools/board3d/finder.py, renders by tools/render3d/boards3d.py) finds the playing area, which is
+  then placed exactly on the board's grid; a greyscale classifier names the piece on each square
+  (tools/board3d/train3d.py), and the two sides are told apart on each board by the pieces' colours
+  (`PieceSides`), so gold against silver reads as well as black against white. The live camera
+  averages several frames and settles once every square is likely enough. Diagrams read reliably;
+  real boards vary with the set, the light and the angle.
+
 When the phone gets warm the engine drops to 2 threads, and to 1 when it is hot; analysis
 continues.
 
@@ -58,3 +68,8 @@ tablebase, is replaced by a stub (`EngineBridge/compat/curl/curl.h`), and that o
 ## License
 
 The NNUE code and networks in libchess come from Stockfish (GPL-3), so the app is a GPL-3 work.
+
+## Licence
+
+GPL-3.0 (LICENSE): the app includes the creatica_ab engine, whose evaluation is Stockfish's NNUE
+code (GPL-3). libchess's own code is MIT.

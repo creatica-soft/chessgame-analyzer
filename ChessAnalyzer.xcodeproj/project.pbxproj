@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0263D6870B19AB64FB4446E1 /* BoardEvalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B783F3D609AC45C15B0E1F7 /* BoardEvalTests.swift */; };
 		0373CE25AFAB8B865EC1A9A6 /* PiecePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1968D526A92E3C2D0152064F /* PiecePalette.swift */; };
 		047A5E979F7AF7753DCB6D95 /* board-9137.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 851241784CB61EBD9E3E28EC /* board-9137.jpg */; };
 		0BDBE8C9A0245CA6EAC1CBB7 /* GamesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18EDCB6DA938D6233B30F114 /* GamesView.swift */; };
@@ -35,6 +36,7 @@
 		4B6AC17B3C7664A439F6272B /* GameTextReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02C74C3769C8F05B383233F /* GameTextReader.swift */; };
 		4DB5566C106A292A53109A0D /* half_ka_v2_hm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 757F5B6A24B580A0FA6C7C66 /* half_ka_v2_hm.cpp */; };
 		51D25127EFC76177030C8FA3 /* board-9065.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1FA958FB3282053A8DC5C922 /* board-9065.jpg */; };
+		525F631CF1811719CDAFD27A /* BoardLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1960854FBA195D12DB8EFD6 /* BoardLocator.swift */; };
 		6277660E0870C14150FE76C3 /* board-9162.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 9AFE0322F81C9B86E8FE2B88 /* board-9162.jpg */; };
 		6B19E22755FBD74A71764AA7 /* Piece.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5731D4C681520B84B4348A96 /* Piece.swift */; };
 		6CAF7EBAF3C95EB9C8C3784C /* zobrist-hash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FA7283F91278E9A71A65EAD7 /* zobrist-hash.cpp */; };
@@ -44,6 +46,7 @@
 		7A543B9383DA9777F0B115D4 /* ReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19480899BFC0B6FF2F0F8AD /* ReaderTests.swift */; };
 		7DE6F78C72D719A37673DD8E /* AnalysisModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F878ED6A8E6E752EDAD87086 /* AnalysisModel.swift */; };
 		7E569576999CB012A21230DC /* PieceClassifier.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = D3B4D4B73C105F1CF5A0F421 /* PieceClassifier.mlpackage */; };
+		7F2D64C6372CE2C67472397F /* PieceSides.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2B8C44679455FE433BF962 /* PieceSides.swift */; };
 		826287EF428558A860B57F30 /* CreaticaBridge.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 00772461BCB5F236E5DAF968 /* CreaticaBridge.h */; };
 		83535D070723EBFF23FE29E0 /* uci_frontend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 603DE39D8264A45BA4300906 /* uci_frontend.cpp */; };
 		8408D22D837570149B4062D8 /* ClipboardReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A600A175630710223A2D56 /* ClipboardReader.swift */; };
@@ -56,6 +59,7 @@
 		A2E342B0BE9B027412011844 /* CreaticaBridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2B71C9FDEFE6AB1083A88B40 /* CreaticaBridge.cpp */; };
 		B1AFC3477FA84E66B5F52D69 /* bitboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11CCCEA10B875203814199D1 /* bitboard.cpp */; };
 		BD880E9A5CE225577BF90712 /* UCI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E598A51DF41120BB6854AA8 /* UCI.swift */; };
+		C53CA3860239514DD9A9B20C /* BoardNet.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 22F2145DFFD58ED67887D5E4 /* BoardNet.mlpackage */; };
 		C7A5F5291319D8F2B69EB0E3 /* memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FC28D3737B503C46FC565E7E /* memory.cpp */; };
 		D05CF6C2CF45CBD1906BDB87 /* BoardFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F21C18C0DC56C77ABFA1AB55 /* BoardFinder.swift */; };
 		D0ECAC0840F65050A6F8F6AA /* DiagramReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D60DF988EE633953CBC5E07A /* DiagramReader.swift */; };
@@ -120,6 +124,7 @@
 		1968D526A92E3C2D0152064F /* PiecePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiecePalette.swift; sourceTree = "<group>"; };
 		19DF7BFE3CBEF8A44B4F0255 /* AnalysisPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisPanel.swift; sourceTree = "<group>"; };
 		1FA958FB3282053A8DC5C922 /* board-9065.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "board-9065.jpg"; sourceTree = "<group>"; };
+		22F2145DFFD58ED67887D5E4 /* BoardNet.mlpackage */ = {isa = PBXFileReference; path = BoardNet.mlpackage; sourceTree = "<group>"; };
 		26744203B817618F8D03F626 /* network.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = network.cpp; sourceTree = "<group>"; };
 		29487E6681367D81F23EEBA5 /* ChessAnalyzerTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ChessAnalyzerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B71C9FDEFE6AB1083A88B40 /* CreaticaBridge.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CreaticaBridge.cpp; sourceTree = "<group>"; };
@@ -132,6 +137,7 @@
 		4AA403DF2979A674F2A2D2E4 /* board.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = board.cpp; sourceTree = "<group>"; };
 		4E61EAEF664D3F434162B8B2 /* nnue_misc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = nnue_misc.cpp; sourceTree = "<group>"; };
 		5731D4C681520B84B4348A96 /* Piece.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piece.swift; sourceTree = "<group>"; };
+		5B783F3D609AC45C15B0E1F7 /* BoardEvalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardEvalTests.swift; sourceTree = "<group>"; };
 		5DD37FDE9C97564607612516 /* curl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = curl.h; sourceTree = "<group>"; };
 		603DE39D8264A45BA4300906 /* uci_frontend.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = uci_frontend.cpp; sourceTree = "<group>"; };
 		62E0B821B45003A75ED77C5A /* EngineService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineService.swift; sourceTree = "<group>"; };
@@ -167,7 +173,9 @@
 		E2B6859D7F126D65A7671C54 /* Annotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Annotation.swift; sourceTree = "<group>"; };
 		E4176B4D1D8DA68CDA8E4AEE /* BoardReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardReaderTests.swift; sourceTree = "<group>"; };
 		EB25E0683A83F5BC8E6BE5C1 /* Position.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Position.swift; sourceTree = "<group>"; };
+		EC2B8C44679455FE433BF962 /* PieceSides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PieceSides.swift; sourceTree = "<group>"; };
 		ECDA0E551B88A76B7230E6F0 /* PositionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionView.swift; sourceTree = "<group>"; };
+		F1960854FBA195D12DB8EFD6 /* BoardLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardLocator.swift; sourceTree = "<group>"; };
 		F21C18C0DC56C77ABFA1AB55 /* BoardFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardFinder.swift; sourceTree = "<group>"; };
 		F711C58C1D6A7D61FBADAB4D /* board-9097.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "board-9097.jpg"; sourceTree = "<group>"; };
 		F878ED6A8E6E752EDAD87086 /* AnalysisModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisModel.swift; sourceTree = "<group>"; };
@@ -281,12 +289,14 @@
 			isa = PBXGroup;
 			children = (
 				F21C18C0DC56C77ABFA1AB55 /* BoardFinder.swift */,
+				F1960854FBA195D12DB8EFD6 /* BoardLocator.swift */,
 				333C3EEC1414A2480EC2D533 /* BoardReader.swift */,
 				04A600A175630710223A2D56 /* ClipboardReader.swift */,
 				D60DF988EE633953CBC5E07A /* DiagramReader.swift */,
 				AE6E5D73AD199EF425B0B9D3 /* EngineBench.swift */,
 				62E0B821B45003A75ED77C5A /* EngineService.swift */,
 				170CF01CFFF4124405F3F413 /* LiveBoardReader.swift */,
+				EC2B8C44679455FE433BF962 /* PieceSides.swift */,
 				AA9D22697E2F15CF1536FD20 /* TextRecognizer.swift */,
 			);
 			path = Engine;
@@ -296,6 +306,7 @@
 			isa = PBXGroup;
 			children = (
 				3E78C060D4EAB997C23C1F21 /* Fixtures */,
+				5B783F3D609AC45C15B0E1F7 /* BoardEvalTests.swift */,
 				E4176B4D1D8DA68CDA8E4AEE /* BoardReaderTests.swift */,
 				C924740262EF9F8CD2A0B2CB /* DiagramTests.swift */,
 				473A7A87B5ACA89FE7833111 /* GameTests.swift */,
@@ -391,6 +402,7 @@
 		ED401ADFECBB712701A64662 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				22F2145DFFD58ED67887D5E4 /* BoardNet.mlpackage */,
 				D3B4D4B73C105F1CF5A0F421 /* PieceClassifier.mlpackage */,
 				D51F90CE1C91D862FB1B2F17 /* SquareClassifier.mlpackage */,
 			);
@@ -542,6 +554,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0263D6870B19AB64FB4446E1 /* BoardEvalTests.swift in Sources */,
 				92B422FA92FAF7C343872FE4 /* BoardReaderTests.swift in Sources */,
 				7654E2D5E15397B460BF29B0 /* DiagramTests.swift in Sources */,
 				32AFC48D2373EE60205CA6AA /* GameTests.swift in Sources */,
@@ -586,6 +599,8 @@
 				10FC5F85EEBCFEE22C13D57B /* AnalysisPanel.swift in Sources */,
 				E052EA775AAD3D9712E39D38 /* Annotation.swift in Sources */,
 				D05CF6C2CF45CBD1906BDB87 /* BoardFinder.swift in Sources */,
+				525F631CF1811719CDAFD27A /* BoardLocator.swift in Sources */,
+				C53CA3860239514DD9A9B20C /* BoardNet.mlpackage in Sources */,
 				288EF1793C6ED0DEE06F6B8E /* BoardReader.swift in Sources */,
 				F17EC671287F08CF2D5DB74F /* BoardView.swift in Sources */,
 				278D010EC4B985930552AE18 /* ChessAnalyzerApp.swift in Sources */,
@@ -605,6 +620,7 @@
 				6B19E22755FBD74A71764AA7 /* Piece.swift in Sources */,
 				7E569576999CB012A21230DC /* PieceClassifier.mlpackage in Sources */,
 				0373CE25AFAB8B865EC1A9A6 /* PiecePalette.swift in Sources */,
+				7F2D64C6372CE2C67472397F /* PieceSides.swift in Sources */,
 				25BF94C87058471E01033B23 /* Position.swift in Sources */,
 				155A54EC885B6AA8A6695045 /* PositionSheet.swift in Sources */,
 				3C538FDFF03E69D1DDF22B8B /* PositionView.swift in Sources */,

@@ -113,16 +113,34 @@ struct Projective {
 /// 4. Board: the 8 x 8 block of lattice squares that alternates most clearly, holds most of the
 ///    X-corners and whose surroundings do not carry the pattern on.
 /// 5. Naming: rank 1 is the edge nearest the camera, a1 its left end, checked by a1 being dark.
+///
+/// The board is looked for first by `BoardLocator` (a network trained on rendered boards, placed
+/// on the X-corners), which finds boards this grid search misses or misplaces: seen low from a
+/// side, on a patterned table, with pieces hiding much of the grid. The grid search is kept for
+/// when the network finds nothing whose squares alternate.
 enum BoardFinder {
     static let work = 960.0
 
+    /// The network's board is tried first unless BOARD_FINDER=grid is set (for comparing the two).
+    static let useNetwork = ProcessInfo.processInfo.environment["BOARD_FINDER"] != "grid"
+
     /// The board's corners a1, h1, h8, a8 in the photo, or nil.
-    static func find(_ photo: CGImage) -> [CGPoint]? {
+    static func find(_ photo: CGImage) -> [CGPoint]? { locate(photo)?.corners }
+
+    /// The board's corners a1, h1, h8, a8 in the photo, and whether the network found them (not
+    /// the grid search, which may place the board a square off).
+    static func locate(_ photo: CGImage) -> (corners: [CGPoint], byNetwork: Bool)? {
         let scale = min(1, work / Double(max(photo.width, photo.height)))
         guard let image = RGBImage(photo, scale: scale) else { return nil }
         let w = image.width, h = image.height
         let grey = image.grey()
         let blurred = gaussian(grey, w, h, sigma: 2)
+        if useNetwork, let quad = BoardLocator.locate(photo, scale: scale, blurred: blurred, w, h), plausible(quad) {
+            let (named, _) = name(quad, grey, w, h)
+            if checkerScore(grey, w, h, Projective(board: named)) >= minCheckerScore {
+                return (named.map { CGPoint(x: $0.x / scale, y: $0.y / scale) }, true)
+            }
+        }
         // X-corners checked by quadrants first: the ring finds boards turned near 45 degrees, which
         // the quadrants miss, but places the board a square off more often. A grid whose cells do
         // not alternate light and dark is not the board (a lattice sheared across the squares):
@@ -131,10 +149,10 @@ enum BoardFinder {
         for ring in [false, true] {
             guard let (named, agree) = board(xCorners(blurred, w, h, ring: ring), grey, w, h) else { continue }
             let score = checkerScore(grey, w, h, Projective(board: named))
-            if agree, score >= minCheckerScore { return named.map { CGPoint(x: $0.x / scale, y: $0.y / scale) } }
+            if agree, score >= minCheckerScore { return (named.map { CGPoint(x: $0.x / scale, y: $0.y / scale) }, false) }
             if score >= minCheckerScore, score > fallback?.score ?? 0 { fallback = (named, score) }
         }
-        return fallback?.corners.map { CGPoint(x: $0.x / scale, y: $0.y / scale) }
+        return fallback.map { ($0.corners.map { CGPoint(x: $0.x / scale, y: $0.y / scale) }, false) }
     }
 
     /// Below this `checkerScore` a grid is taken not to be the board: on held-out frames of the
@@ -164,6 +182,12 @@ enum BoardFinder {
               let (i0, j0) = placeBoard(grey, w, h, lattice, onGrid) else { return nil }
         let quad = [lattice.map(i0, j0), lattice.map(i0 + 8, j0), lattice.map(i0 + 8, j0 + 8), lattice.map(i0, j0 + 8)]
         guard plausible(quad) else { return nil }
+        return name(quad, grey, w, h)
+    }
+
+    /// A board's corners, in order round it, named a1, h1, h8, a8 so that a1 is a dark corner
+    /// nearest the camera; and whether the squares' colours bear the naming out.
+    static func name(_ quad: [CGPoint], _ grey: [Float], _ w: Int, _ h: Int) -> ([CGPoint], Bool) {
         let named = nameCorners(quad)
         guard let agree = coloursAgree(grey, w, h, Projective(board: named)) else { return (named, false) }
         if agree { return (named, true) }

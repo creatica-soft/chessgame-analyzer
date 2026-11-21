@@ -11,7 +11,7 @@ if __name__ == '__main__':
     located, labels = {}, {}
     for name, m in meta.items():
         located[name] = {'found': True, 'corners': m['corners'], 'colours': True}
-        labels[name.split('-')[0]] = m['fen']
+        labels[name.split('-')[0].split('.')[0]] = m['fen']
     json.dump(located, open(located_out, 'w'))
     json.dump(labels, open(labels_out, 'w'))
     print(len(located), 'renders')

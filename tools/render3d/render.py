@@ -18,10 +18,8 @@ import bpy, bmesh
 from mathutils import Vector, Matrix, Euler
 from bpy_extras.object_utils import world_to_camera_view
 
-argv = sys.argv[sys.argv.index('--') + 1:]
-positions_path, out_dir, first, count = argv[0], argv[1], int(argv[2]), int(argv[3])
-seed = int(argv[4]) if len(argv) > 4 else first
-rng = random.Random(seed)
+# Seeded in main; boards3d.py imports this module and seeds it itself.
+rng = random.Random(0)
 MM = 0.001
 
 
@@ -57,7 +55,7 @@ def clear_scene():
     return scene
 
 
-def material(name, color, roughness, specular=0.5, coat=0.0, wood=None):
+def material(name, color, roughness, specular=0.5, coat=0.0, wood=None, metallic=0.0):
     """A principled material; `wood`: (darker colour, scale) for a grain of noise between the two."""
     m = bpy.data.materials.new(name)
     m.use_nodes = True
@@ -65,6 +63,7 @@ def material(name, color, roughness, specular=0.5, coat=0.0, wood=None):
     bsdf = nodes['Principled BSDF']
     bsdf.inputs['Base Color'].default_value = (*color, 1)
     bsdf.inputs['Roughness'].default_value = roughness
+    bsdf.inputs['Metallic'].default_value = metallic
     if 'Coat Weight' in bsdf.inputs:
         bsdf.inputs['Coat Weight'].default_value = coat
     if wood:
@@ -227,7 +226,7 @@ def collar(p, r, z, t):
 
 def make_pawn(v):
     H, R = 50 * v['h'], 14 * v['w']
-    p = base(Profile(), R, 9 * v['h'])
+    p = base(Profile(), R, 9 * v['h'] * v['base'])
     p.to(R * 0.45, 14 * v['h']).to(R * 0.36, 23 * v['h'])
     collar(p, R * 0.6, 24 * v['h'], 4 * v['h'])
     head = 8.5 * v['w'] * v['head']
@@ -240,7 +239,7 @@ def make_pawn(v):
 
 def make_rook(v):
     R = 18 * v['w']
-    p = base(Profile(), R, 10 * v['h'])
+    p = base(Profile(), R, 10 * v['h'] * v['base'])
     # A tower: barely narrowing up to a collar, then the turret, wider than the body.
     p.to(R * 0.72, 11 * v['h']).to(R * 0.66, 40 * v['h'])
     collar(p, R * 0.74, 41 * v['h'], 3 * v['h'])
@@ -259,7 +258,7 @@ def make_rook(v):
 
 def make_knight(v):
     R = 17 * v['w']
-    p = base(Profile(), R, 11 * v['h'])
+    p = base(Profile(), R, 11 * v['h'] * v['base'])
     p.to(R * 0.58, 13 * v['h']).to(0, 13 * v['h'])
     foot = lathe('knight-foot', p)
     # The head, facing +x, from the side: neck, mane, ear, forehead, muzzle, jaw, throat.
@@ -267,7 +266,7 @@ def make_knight(v):
     outline = [(-10, 12), (-11, 22), (-10.5, 32), (-8.5, 41), (-5, 48), (-2.5, 53), (-1.5, 58), (0.5, 61),
                (2.5, 57), (6, 55), (10, 51.5), (14, 45.5), (16.5, 39.5), (17, 35.5), (15.5, 32.5), (11, 32.5),
                (7.5, 34), (5, 31), (6, 25.5), (8.5, 19), (10, 12)]
-    outline = [(x * v['w'] * MM, z * s * MM) for x, z in outline]
+    outline = [(x * (v['muzzle'] if x > 4 else 1) * v['w'] * MM, z * s * MM) for x, z in outline]
     thick = 17 * v['w'] * v['head'] * MM
     mesh = bpy.data.meshes.new('knight-head')
     bm = bmesh.new()
@@ -296,7 +295,7 @@ def make_knight(v):
 
 def make_bishop(v):
     R = 16 * v['w']
-    p = base(Profile(), R, 10 * v['h'])
+    p = base(Profile(), R, 10 * v['h'] * v['base'])
     p.to(R * 0.55, 12 * v['h']).to(R * 0.34, 37 * v['h'])
     collar(p, R * 0.64, 38 * v['h'], 5 * v['h'])
     rx, rz, cz = 9.5 * v['w'] * v['head'], 11 * v['h'], 54 * v['h']
@@ -312,7 +311,7 @@ def make_bishop(v):
 
 def make_queen(v):
     R = 19 * v['w']
-    p = base(Profile(), R, 12 * v['h'])
+    p = base(Profile(), R, 12 * v['h'] * v['base'])
     p.to(R * 0.55, 14 * v['h']).to(R * 0.33, 48 * v['h'])
     collar(p, R * 0.62, 49 * v['h'], 5 * v['h'])
     crown = 12.5 * v['w'] * v['head']
@@ -331,7 +330,7 @@ def make_queen(v):
 
 def make_king(v):
     R = 20 * v['w']
-    p = base(Profile(), R, 13 * v['h'])
+    p = base(Profile(), R, 13 * v['h'] * v['base'])
     p.to(R * 0.55, 15 * v['h']).to(R * 0.34, 55 * v['h'])
     collar(p, R * 0.62, 56 * v['h'], 6 * v['h'])
     crown = 12 * v['w'] * v['head']
@@ -340,6 +339,8 @@ def make_king(v):
     body = lathe('king', p)
     top = 85 * v['h']
     arm = 2.2 * v['w']
+    if v['king'] == 'ball':
+        return [body, sphere('finial', 4.5 * v['w'] * MM, (0, 0, (top + 3.5) * MM))]
     upright = box('cross', (arm * 2 * MM, arm * 2 * MM, 11 * v['h'] * MM), (0, 0, (top + 5) * MM))
     bar = box('bar', (arm * 4.5 * MM, arm * 2 * MM, arm * 2 * MM), (0, 0, (top + 6.5) * MM))
     return [body, upright, bar]
@@ -350,7 +351,10 @@ MAKERS = {'p': make_pawn, 'r': make_rook, 'n': make_knight, 'b': make_bishop, 'q
 
 def piece_set(white_mat, black_mat, scale):
     """One prototype per piece and colour, hidden; the board's pieces are linked copies."""
-    v = {'h': scale * rng.uniform(0.95, 1.05), 'w': scale * rng.uniform(0.93, 1.07), 'head': rng.uniform(0.92, 1.08)}
+    # Proportions vary from set to set: a little taller or stouter, bigger heads, higher bases, a
+    # longer muzzle, a cross or a ball on the king.
+    v = {'h': scale * rng.uniform(0.92, 1.08), 'w': scale * rng.uniform(0.9, 1.1), 'head': rng.uniform(0.88, 1.12),
+         'base': rng.uniform(0.8, 1.35), 'muzzle': rng.uniform(0.85, 1.2), 'king': rng.choice(['cross', 'cross', 'ball'])}
     protos = {}
     for kind, make in MAKERS.items():
         parts = make(v)
@@ -495,13 +499,30 @@ def place_camera(scene, square, size):
 # MARK: - A render
 
 def piece_materials():
-    if rng.random() < 0.6:       # plastic
+    """White's and Black's materials. Sets differ most in colour and material, which the
+    classifier must not lean on: plastic, wood, metal (gold against silver, either way round,
+    alike in lightness), and coloured pairs."""
+    kind = rng.random()
+    if kind < 0.2:               # metal
+        silver = material('silver', jitter(srgb(rng.choice(['#C9CCCF', '#B8BBBE', '#D8D8D8', '#A9ACB0'])), 0.05), rng.uniform(0.15, 0.5),
+                          metallic=rng.uniform(0.7, 1.0))
+        gold = material('gold', jitter(srgb(rng.choice(['#D4AF37', '#C9A23F', '#B5A642', '#A8803A', '#8C6A3B', '#CFA85A'])), 0.06),
+                        rng.uniform(0.15, 0.5), metallic=rng.uniform(0.7, 1.0))
+        return (silver, gold) if rng.random() < 0.75 else (gold, silver)
+    if kind < 0.35:              # coloured: a light side against a red, brown or green one
+        white = material('white', jitter(srgb(rng.choice(['#F2EFE6', '#EDE0C0', '#E9D8A6', '#F5F1E8'])), 0.05), rng.uniform(0.15, 0.45),
+                         coat=rng.uniform(0, 0.5))
+        black = material('black', jitter(srgb(rng.choice(['#8B1A1A', '#A02C22', '#6E2B1A', '#7A3B14', '#2F4F2F', '#5C1F1F'])), 0.1),
+                         rng.uniform(0.15, 0.45), coat=rng.uniform(0, 0.5),
+                         wood=(shade(srgb('#4A1410'), 0.7, 1.0), 60) if rng.random() < 0.5 else None)
+        return white, black
+    if kind < 0.6:               # plastic
         white = material('white', jitter(srgb(rng.choice(['#F2EFE6', '#EDE6D2', '#FAFAF5', '#E9DDB8', '#EADFC0', '#E5D3A8', '#F0E4C4'])), 0.04), rng.uniform(0.15, 0.45), coat=rng.uniform(0, 0.4))
         black = material('black', jitter(srgb(rng.choice(['#141414', '#1E1A18', '#202020'])), 0.3), rng.uniform(0.12, 0.4), coat=rng.uniform(0, 0.5))
     else:                        # wood
         white = material('white', jitter(srgb(rng.choice(['#E6C892', '#EFD7A8', '#DDBB85'])), 0.06), rng.uniform(0.25, 0.5),
                          coat=rng.uniform(0.2, 0.7), wood=(shade(srgb('#C9A26A'), 0.85, 1.0), 60))
-        black = material('black', jitter(srgb(rng.choice(['#2A1A12', '#3B2116', '#1A1210', '#5A2E1E'])), 0.2), rng.uniform(0.2, 0.45),
+        black = material('black', jitter(srgb(rng.choice(['#2A1A12', '#3B2116', '#1A1210', '#5A2E1E', '#6B3420', '#4E2A1A'])), 0.2), rng.uniform(0.2, 0.45),
                          coat=rng.uniform(0.2, 0.7), wood=(shade(srgb('#120B08'), 0.8, 1.0), 60))
     return white, black
 
@@ -564,6 +585,9 @@ PER_SET = int(os.environ.get('RENDER_PER_SET', 10))
 
 if __name__ == '__main__':
     import time
+    argv = sys.argv[sys.argv.index('--') + 1:]
+    positions_path, out_dir, first, count = argv[0], argv[1], int(argv[2]), int(argv[3])
+    rng.seed(int(argv[4]) if len(argv) > 4 else first)
     fens = json.load(open(positions_path))
     os.makedirs(out_dir, exist_ok=True)
     meta_path = os.path.join(out_dir, 'meta.json')

@@ -52,7 +52,7 @@ if __name__ == '__main__':
     kept = sorted(f for f, e in loc.items() if e.get('colours'))
     w = cropset.Writer(out, 64 * len(kept))
     for f in kept:
-        clip = f.split('-')[0]
+        clip = f.split('-')[0].split('.')[0]          # REN_<n>-000.jpg, BRD_<n>.jpg
         img = cv2.imread(os.path.join(frames, f))
         Hb = locate.board_homography(np.array(loc[f]['corners'], np.float32))
         for fi in range(8):

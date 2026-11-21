@@ -4,7 +4,8 @@ import Foundation
 /// Reads a real board from a stream of camera frames: each frame is read on its own
 /// (`BoardReader.read(frame:)`), and the last few frames' readings are averaged, so that a piece
 /// misread in one frame, or hidden from one angle, is outvoted by the others. The reading has
-/// settled when the averaged board has stayed the same for several frames with no square unsure.
+/// settled when the averaged board has stayed the same for several frames with every square's
+/// reading likely enough; squares still a little unsure are marked for the player to check.
 struct LiveBoardReader {
     /// How many of the latest frames are averaged.
     var window = 8
@@ -15,6 +16,10 @@ struct LiveBoardReader {
     /// started again from the new frames (the board, or the camera, has moved on).
     var maxDisagreement = 12
     var restartAfter = 4
+    /// The averaged board settles only when every square's likeliest reading is at least this
+    /// likely; nil: only when no square is doubtful at all (`DiagramReader.isDoubtful`), which a
+    /// reading that weighs the pieces' colours (see `BoardReader.settleSides`) seldom reaches.
+    var minimumSure: Double? = 0.6
 
     private(set) var frames: [BoardReader.Frame] = []
     /// Consecutive frames the averaged board has stayed the same for.
@@ -25,7 +30,8 @@ struct LiveBoardReader {
     enum Outcome: Equatable { case added, rejected, restarted }
 
     /// Adds a frame's reading. A frame's board is named so that a1 is a dark corner, which may be
-    /// either of two corners half a turn apart: it is turned to whichever fits the average better.
+    /// either of two corners half a turn apart (or, when the colours could not tell, any corner):
+    /// it is turned to whichever way round fits the average best.
     @discardableResult
     mutating func add(_ frame: BoardReader.Frame) -> Outcome {
         guard !frames.isEmpty else { frames = [frame]; settle(); return .added }
@@ -33,7 +39,7 @@ struct LiveBoardReader {
         func fit(_ p: [[Double]]) -> Double {
             (0..<64).map { sq in zip(mean[sq], p[sq]).map { $0 * $1 }.reduce(0, +) }.reduce(0, +)
         }
-        let aligned = fit(frame.turned.probabilities) > fit(frame.probabilities) ? frame.turned : frame
+        let aligned = (0..<4).map { frame.rotated($0) }.max { fit($0.probabilities) < fit($1.probabilities) }!
         let differing = (0..<64).filter { Self.best(aligned.probabilities[$0]) != Self.best(mean[$0]) }.count
         if differing > maxDisagreement {
             rejectedInARow += 1
@@ -76,18 +82,23 @@ struct LiveBoardReader {
         return (0..<64).filter { DiagramReader.isDoubtful(constrained[$0]) }
     }
 
-    var isSettled: Bool { frames.count >= steadyFrames + 1 && steady >= steadyFrames && doubtful.isEmpty }
+    /// The squares whose likeliest reading in the average is less likely than `minimumSure`.
+    var unsure: [Int] {
+        let p = average
+        guard !p.isEmpty else { return [] }
+        let constrained = DiagramReader.constrain(p)
+        guard let minimumSure else { return (0..<64).filter { DiagramReader.isDoubtful(constrained[$0]) } }
+        return (0..<64).filter { (constrained[$0].max() ?? 0) < minimumSure }
+    }
+
+    var isSettled: Bool { frames.count >= steadyFrames + 1 && steady >= steadyFrames && unsure.isEmpty }
 
     /// The reading of the averaged frames, shown on the latest frame's photo; the board turned
-    /// round if White's pawns and king stand on the far side.
+    /// round so that White's pawns and king stand on the near side.
     func reading() throws -> DiagramReader.Reading {
-        guard var frame = frames.last else { throw DiagramReader.ReadError.noBoard }
-        var p = average
-        if BoardReader.whiteStandsHigh(p) {
-            frame = frame.turned
-            p = p.reversed()
-        }
-        return try BoardReader.reading(frame, probabilities: p)
+        guard let frame = frames.last else { throw DiagramReader.ReadError.noBoard }
+        let k = BoardReader.uprightTurn(average)
+        return try BoardReader.reading(frame.rotated(k), probabilities: BoardReader.rotated(average, k))
     }
 
     private static func best(_ row: [Double]) -> Int {

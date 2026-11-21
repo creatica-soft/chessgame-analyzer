@@ -4,7 +4,7 @@ shapes, and differ in colour and material (silver, boxwood, mahogany, plastic), 
 count. Pieces are stretched taller and shorter in training, as sets differ in scale too.
 Clips are split, not frames: every fourth clip is held out, so the test is on positions and camera
 paths the network never saw. Reports square accuracy and whole boards (frames) read without a mistake.
-usage: train3d.py set-dir[,more-set-dirs...] model.pt [epochs]       (crop sets: see cropset.py)
+usage: [INIT=start.pt LR=1e-3] train3d.py set-dir[,more-set-dirs...] model.pt [epochs]       (crop sets: see cropset.py)
 """
 import sys, time
 import numpy as np
@@ -105,12 +105,15 @@ if __name__ == '__main__':
     yt = y[train_idx]
     print(f'train {len(train_idx)} crops from {len(ids) - len(test_ids)} clips, test {len(xv)} from {len(test_ids)} clips', flush=True)
     dev = 'mps' if torch.backends.mps.is_available() else 'cpu'
-    net = PieceNet().to(dev)
+    # INIT=model.pt starts from a trained model (fine-tuning on more sets), LR its learning rate.
+    import os
+    net = load(os.environ['INIT'], dev).train() if os.environ.get('INIT') else PieceNet().to(dev)
+    lr = float(os.environ.get('LR', 2e-3))
     counts = np.bincount(yt, minlength=13).astype(np.float32)
     weights = torch.tensor((counts.max() / np.maximum(counts, 1)) ** 0.5, device=dev)
-    opt = torch.optim.AdamW(net.parameters(), lr=2e-3, weight_decay=1e-4)
+    opt = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-4)
     steps = epochs * (len(train_idx) // 128)
-    sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=2e-3, total_steps=steps)
+    sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=lr, total_steps=steps)
     for epoch in range(epochs):
         net.train()
         t0 = time.time()
