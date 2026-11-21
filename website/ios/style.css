@@ -11,7 +11,7 @@ body {
   font: 17px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 }
 header, main, footer { max-width: 860px; margin: 0 auto; padding: 0 20px; }
-header { display: flex; align-items: center; justify-content: space-between; padding-top: 22px; padding-bottom: 10px; }
+header { display: flex; flex-wrap: wrap; gap: 6px 0; align-items: center; justify-content: space-between; padding-top: 22px; padding-bottom: 10px; }
 header a.brand { font-weight: 700; font-size: 20px; color: var(--text); text-decoration: none; letter-spacing: 0.2px; }
 nav a { color: var(--muted); text-decoration: none; margin-left: 18px; font-size: 15px; }
 nav a:hover, nav a[aria-current] { color: var(--accent); }

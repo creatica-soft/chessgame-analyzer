@@ -289,6 +289,9 @@ Die Engine, Creatica AB, nutzt die NNUE-Bewertung von Stockfish. Die App steht u
 
 ## Русский
 
+URLs for this localization (App Store Connect takes them per language): support https://chessgame-analyzer.creatica.org/ios/support-ru.html,
+marketing https://chessgame-analyzer.creatica.org/ios/index-ru.html, privacy policy https://chessgame-analyzer.creatica.org/ios/privacy-ru.html.
+
 ### Name
 Creatica Chess Analyzer
 
