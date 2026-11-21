@@ -193,7 +193,9 @@ struct SettingsView: View {
             Text("Creatica AB is an alpha-beta engine using NNUE evaluation. Its evaluation code and networks come from Stockfish and are licensed under the GNU General Public License v3, so this app is distributed under the GPL v3 as well.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+            Link("App source code", destination: URL(string: "https://github.com/creatica-soft/chessgame-analyzer")!)
             Link("Engine source code", destination: URL(string: "https://github.com/creatica-soft/libchess")!)
+            Link("Help and privacy", destination: URL(string: "https://chessgame-analyzer.creatica.org/ios/")!)
         }
     }
 }

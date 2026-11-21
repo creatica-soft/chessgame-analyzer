@@ -10,6 +10,7 @@
 		0263D6870B19AB64FB4446E1 /* BoardEvalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B783F3D609AC45C15B0E1F7 /* BoardEvalTests.swift */; };
 		0373CE25AFAB8B865EC1A9A6 /* PiecePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1968D526A92E3C2D0152064F /* PiecePalette.swift */; };
 		047A5E979F7AF7753DCB6D95 /* board-9137.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 851241784CB61EBD9E3E28EC /* board-9137.jpg */; };
+		09C1E78EEFD700D37F21C8E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FB94AF15FE220BF1658B029B /* Assets.xcassets */; };
 		0BDBE8C9A0245CA6EAC1CBB7 /* GamesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18EDCB6DA938D6233B30F114 /* GamesView.swift */; };
 		0CFD2B14C64A63F66C27C5D6 /* tbprobe.c in Sources */ = {isa = PBXBuildFile; fileRef = 0140C3A999EF55C03FBFCE05 /* tbprobe.c */; };
 		10FC5F85EEBCFEE22C13D57B /* AnalysisPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19DF7BFE3CBEF8A44B4F0255 /* AnalysisPanel.swift */; };
@@ -72,10 +73,12 @@
 		E3DC2172CB0AE648DA75DEC7 /* EngineService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62E0B821B45003A75ED77C5A /* EngineService.swift */; };
 		E3EF37D10EE85F593CB4ABE2 /* ScanViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2689E81EF1359916F3CF20 /* ScanViews.swift */; };
 		E9FBD1FDFBF4BD18F7A91974 /* network.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26744203B817618F8D03F626 /* network.cpp */; settings = {COMPILER_FLAGS = "-fno-lto"; }; };
+		EF91905B03565C8178E2F966 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 096D987611AD361C86C72ABA /* PrivacyInfo.xcprivacy */; };
 		F17EC671287F08CF2D5DB74F /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45DB6B0468CE2FA7192274F5 /* BoardView.swift */; };
 		F27B5B630F0F6FB3C665BC3A /* full_threats.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 084F53B4FB849B1ADA29B419 /* full_threats.cpp */; };
 		FCA79B4518252066AC9FB810 /* pgn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9CF3D02A9CCCC601A8F66B73 /* pgn.cpp */; };
 		FD99619587085A9948E2BED4 /* nnue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 819AE56AD9872F9294581158 /* nnue.cpp */; };
+		FF70195FF0398C2F57F6612B /* DemoSamplesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEB20F6AE6479B9F0FC6970C /* DemoSamplesTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -116,6 +119,7 @@
 		057FE249B4D3015DEF6DD201 /* misc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = misc.cpp; sourceTree = "<group>"; };
 		08427A9FB44AF6D3464A762F /* engine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = engine.cpp; sourceTree = "<group>"; };
 		084F53B4FB849B1ADA29B419 /* full_threats.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = full_threats.cpp; sourceTree = "<group>"; };
+		096D987611AD361C86C72ABA /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		09F217E4D6E44E0964BEC200 /* move.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = move.cpp; sourceTree = "<group>"; };
 		0E50BB1D1F6B041912115380 /* evaluate.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = evaluate.cpp; sourceTree = "<group>"; };
 		11CCCEA10B875203814199D1 /* bitboard.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bitboard.cpp; sourceTree = "<group>"; };
@@ -170,6 +174,7 @@
 		D3B4D4B73C105F1CF5A0F421 /* PieceClassifier.mlpackage */ = {isa = PBXFileReference; path = PieceClassifier.mlpackage; sourceTree = "<group>"; };
 		D51F90CE1C91D862FB1B2F17 /* SquareClassifier.mlpackage */ = {isa = PBXFileReference; path = SquareClassifier.mlpackage; sourceTree = "<group>"; };
 		D60DF988EE633953CBC5E07A /* DiagramReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagramReader.swift; sourceTree = "<group>"; };
+		DEB20F6AE6479B9F0FC6970C /* DemoSamplesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSamplesTests.swift; sourceTree = "<group>"; };
 		E2B6859D7F126D65A7671C54 /* Annotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Annotation.swift; sourceTree = "<group>"; };
 		E4176B4D1D8DA68CDA8E4AEE /* BoardReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardReaderTests.swift; sourceTree = "<group>"; };
 		EB25E0683A83F5BC8E6BE5C1 /* Position.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Position.swift; sourceTree = "<group>"; };
@@ -180,6 +185,7 @@
 		F711C58C1D6A7D61FBADAB4D /* board-9097.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "board-9097.jpg"; sourceTree = "<group>"; };
 		F878ED6A8E6E752EDAD87086 /* AnalysisModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisModel.swift; sourceTree = "<group>"; };
 		FA7283F91278E9A71A65EAD7 /* zobrist-hash.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "zobrist-hash.cpp"; sourceTree = "<group>"; };
+		FB94AF15FE220BF1658B029B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FC28D3737B503C46FC565E7E /* memory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = memory.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -308,6 +314,7 @@
 				3E78C060D4EAB997C23C1F21 /* Fixtures */,
 				5B783F3D609AC45C15B0E1F7 /* BoardEvalTests.swift */,
 				E4176B4D1D8DA68CDA8E4AEE /* BoardReaderTests.swift */,
+				DEB20F6AE6479B9F0FC6970C /* DemoSamplesTests.swift */,
 				C924740262EF9F8CD2A0B2CB /* DiagramTests.swift */,
 				473A7A87B5ACA89FE7833111 /* GameTests.swift */,
 				399FFF7E25C64F61C71F4B79 /* ModelTests.swift */,
@@ -402,8 +409,10 @@
 		ED401ADFECBB712701A64662 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				FB94AF15FE220BF1658B029B /* Assets.xcassets */,
 				22F2145DFFD58ED67887D5E4 /* BoardNet.mlpackage */,
 				D3B4D4B73C105F1CF5A0F421 /* PieceClassifier.mlpackage */,
+				096D987611AD361C86C72ABA /* PrivacyInfo.xcprivacy */,
 				D51F90CE1C91D862FB1B2F17 /* SquareClassifier.mlpackage */,
 			);
 			path = Resources;
@@ -436,6 +445,7 @@
 			buildConfigurationList = 7CBCDF1FAE735A011F493DD0 /* Build configuration list for PBXNativeTarget "ChessAnalyzer" */;
 			buildPhases = (
 				E1D71FE84349938091F7AABD /* Sources */,
+				704CCB794E561087C3F75F28 /* Resources */,
 				2DB20E86E9505EA075139421 /* Frameworks */,
 			);
 			buildRules = (
@@ -514,6 +524,15 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		704CCB794E561087C3F75F28 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				09C1E78EEFD700D37F21C8E5 /* Assets.xcassets in Resources */,
+				EF91905B03565C8178E2F966 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9C56B958D3F938C87752CBA8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -556,6 +575,7 @@
 			files = (
 				0263D6870B19AB64FB4446E1 /* BoardEvalTests.swift in Sources */,
 				92B422FA92FAF7C343872FE4 /* BoardReaderTests.swift in Sources */,
+				FF70195FF0398C2F57F6612B /* DemoSamplesTests.swift in Sources */,
 				7654E2D5E15397B460BF29B0 /* DiagramTests.swift in Sources */,
 				32AFC48D2373EE60205CA6AA /* GameTests.swift in Sources */,
 				3C34AF8D8831960C10264872 /* ModelTests.swift in Sources */,
@@ -764,6 +784,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Chess Analyzer";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.board-games";
 				INFOPLIST_KEY_NSCameraUsageDescription = "The camera is used to read chess boards, diagrams and printed games, on the phone.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -775,7 +796,7 @@
 					"@executable_path/Frameworks",
 				);
 				LLVM_LTO = YES;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"-lc++",
 					"-ObjC",
@@ -896,6 +917,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Chess Analyzer";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.board-games";
 				INFOPLIST_KEY_NSCameraUsageDescription = "The camera is used to read chess boards, diagrams and printed games, on the phone.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -906,7 +928,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"-lc++",
 					"-ObjC",

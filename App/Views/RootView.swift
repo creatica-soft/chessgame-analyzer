@@ -171,6 +171,14 @@ struct RootView: View {
 
 #if DEBUG
 enum DemoGame {
+    /// The same pixels on every device (an iPad's screen scale is 2, an iPhone's 3), so a demo
+    /// reads alike everywhere.
+    private static var fixedScale: UIGraphicsImageRendererFormat {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        return format
+    }
+
     /// The Opera Game's final position, 17. Rd8#.
     static let operaFinal = "1n1Rkb1r/p4ppp/4q3/4p1B1/4P3/8/PPP2PPP/2K5 b k - 1 17"
 
@@ -179,7 +187,7 @@ enum DemoGame {
     static func diagram(fen: String = operaFinal, degrees: Double = 2, font: String = "Menlo") -> UIImage {
         let size = CGSize(width: 1000, height: 1300)
         let position = (try? Position(fen: fen)) ?? .start
-        return UIGraphicsImageRenderer(size: size).image { context in
+        return UIGraphicsImageRenderer(size: size, format: fixedScale).image { context in
             let cg = context.cgContext
             UIColor(white: 0.97, alpha: 1).setFill()
             cg.fill(CGRect(origin: .zero, size: size))
@@ -237,7 +245,7 @@ enum DemoGame {
             "Morphy – Duke Karl\nParis 1858\n\n1. e4 e5\n2. Nf3 d6\n3. d4 Bg4\n4. dxe5 Bxf3\n5. Qxf3 dxe5\n6. Bc4 Nf6\n7. Qb3 Qe7\n8. Nc3 c6\n9. Bg5 b5",
             "10. Nxb5 cxb5\n11. Bxb5+ Nbd7\n12. O-O-O Rd8\n13. Rxd7 Rxd7\n14. Rd1 Qe6\n15. Bxd7+ Nxd7\n16. Qb8+ Nxb8\n17. Rd8# 1-0",
         ]
-        return UIGraphicsImageRenderer(size: size).image { context in
+        return UIGraphicsImageRenderer(size: size, format: fixedScale).image { context in
             UIColor.white.setFill()
             context.fill(CGRect(origin: .zero, size: size))
             let attributes: [NSAttributedString.Key: Any] = [
