@@ -4,9 +4,9 @@ shapes, and differ in colour and material (silver, boxwood, mahogany, plastic), 
 count. Pieces are stretched taller and shorter in training, as sets differ in scale too.
 Clips are split, not frames: every fourth clip is held out, so the test is on positions and camera
 paths the network never saw. Reports square accuracy and whole boards (frames) read without a mistake.
-usage: [INIT=start.pt LR=1e-3] train3d.py set-dir[,more-set-dirs...] model.pt [epochs]       (crop sets: see cropset.py)
+usage: [INIT=start.pt LR=1e-3 THIN_EMPTY=set:0.15 SHAPE_ONLY=set] train3d.py set-dir[,more-set-dirs...] model.pt [epochs]       (crop sets: see cropset.py)
 """
-import sys, time
+import sys, os, time
 import numpy as np
 import torch, torch.nn as nn, torch.nn.functional as F
 import cropset
@@ -73,6 +73,20 @@ def augment(x):
     return x
 
 
+def loss_fn(logits, y, shape_only, weights):
+    """Cross-entropy, as F.cross_entropy with class weights and label smoothing; but for the crops
+    marked `shape_only`, on which piece only: the loss is on the white and the black piece's
+    probabilities summed, so they teach shape and leave the side to the other crops."""
+    loss = F.cross_entropy(logits, y, weight=weights, label_smoothing=0.05, reduction='none')
+    pieces = shape_only & (y > 0)
+    if pieces.any():
+        lp = F.log_softmax(logits, 1)
+        kind = ((y - 1) % 6).clamp(min=0)[:, None]
+        either = torch.logaddexp(lp.gather(1, 1 + kind), lp.gather(1, 7 + kind))[:, 0]
+        loss = torch.where(pieces, -either * weights[y], loss)
+    return loss.sum() / weights[y].sum()
+
+
 def evaluate(net, x, y, names, dev):
     net.eval()
     preds, probs = [], []
@@ -102,11 +116,23 @@ if __name__ == '__main__':
     train_idx = np.where(~test)[0]
     test_idx = np.where(test)[0]
     xv, yv, nv, sv = cropset.View(data, test_idx), y[test_idx], names[test_idx], source[test_idx]
+    # THIN_EMPTY=set:share,...: train on only that share of a set's empty squares (renders are
+    # three quarters empty, and would outnumber the real clips).
+    rng = np.random.default_rng(0)
+    for part in filter(None, os.environ.get('THIN_EMPTY', '').split(',')):
+        name, share = part.rsplit(':', 1)
+        empty = (source[train_idx] == paths.index(name)) & (y[train_idx] == 0)
+        train_idx = train_idx[~empty | (rng.random(len(train_idx)) < float(share))]
+    # SHAPE_ONLY=set,...: those sets' crops teach which piece, not whose (see loss_fn): renders of
+    # sets whose sides look alike in grey (gold against silver) would teach the classifier to be
+    # unsure of sides everywhere.
+    shape_only = torch.from_numpy(np.isin(source, [paths.index(n) for n in filter(None, os.environ.get('SHAPE_ONLY', '').split(','))]))
     yt = y[train_idx]
+    for i, path in enumerate(paths):
+        print(f'  {path}: {np.sum(source[train_idx] == i)} training crops{" (shape only)" if shape_only[source == i].any() else ""}', flush=True)
     print(f'train {len(train_idx)} crops from {len(ids) - len(test_ids)} clips, test {len(xv)} from {len(test_ids)} clips', flush=True)
     dev = 'mps' if torch.backends.mps.is_available() else 'cpu'
     # INIT=model.pt starts from a trained model (fine-tuning on more sets), LR its learning rate.
-    import os
     net = load(os.environ['INIT'], dev).train() if os.environ.get('INIT') else PieceNet().to(dev)
     lr = float(os.environ.get('LR', 2e-3))
     counts = np.bincount(yt, minlength=13).astype(np.float32)
@@ -124,7 +150,7 @@ if __name__ == '__main__':
             rows = train_idx[b.numpy()]
             xb = augment(torch.from_numpy(data.take(rows)).permute(0, 3, 1, 2).contiguous().float().to(dev))
             yb = torch.from_numpy(y[rows]).to(dev)
-            loss = F.cross_entropy(net(xb), yb, weight=weights, label_smoothing=0.05)
+            loss = loss_fn(net(xb), yb, shape_only[rows].to(dev), weights)
             opt.zero_grad(); loss.backward(); opt.step(); sched.step()
             total += loss.item()
         err, clean, mean_wrong, _, _ = evaluate(net, xv, yv, nv, dev)
